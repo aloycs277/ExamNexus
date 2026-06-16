@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExamNexus - University Portal Gateway</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="portal-wrapper">
+
+    <aside class="sidebar">
+      <div class="uni-logo-box">
+        <img src="logoMU.png" alt="Metropolitan University" width="150px">
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#welcome" class="menu-item active" onclick="switchSection('welcome')">🏠 Home Dashboard</a>
+        <a href="Routine_ Spring Term Final Exam-2026.pdf" target="pdf-frame" class="menu-item" onclick="switchSection('routine')">📅 Exam Routine</a>
+        <a href="BUS_Schedule.pdf" target="pdf-frame" class="menu-item" onclick="switchSection('bus-schedule')">🚌 Exam Bus Schedule</a>
+      </nav>
+      
+      <img src="a-set-of-varienew front.jpg" alt="" class="H2">
+      
+      <div class="sidebar-footer">
+        <p class="footer-title">Official Platforms</p>
+        <div class="social-links">
+          <a href="https://www.facebook.com/metropolitanuniversity" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://www.linkedin.com/school/metropolitanuniversitysylhet/posts/?feedView=all" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+          <a href="https://www.youtube.com/MetropolitanUniversityBangladesh" target="_blank"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+        <div class="admin-gate-wrapper">
+          <button class="btn-admin-gate" onclick="openAdminModal()">🔑 Admin / Faculty Login</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      
+      <header class="top-bar">
+        <div class="stats-badge">
+          <span class="pulse-indicator"></span>
+          <strong>Total Students:</strong> <span id="studentCount">2299</span>
+        </div>
+
+        <div class="auth-action-group">
+          <button class="icon-nav-btn" onclick="openLoginModal('student')" title="Portal Sign In">
+            <span class="btn-icon">👤</span> Login Portal
+          </button>
+          <button class="icon-nav-btn register-accent" onclick="openRegisterModal('student')" title="Create Portal Profile">
+            <span class="btn-icon">📝</span> Register
+          </button>
+        </div>
+      </header>
+
+      <div id="loginModal" class="modal-overlay hidden">
+        <div class="modal-card">
+          <button class="close-modal-btn" onclick="closeAllModals()">&times;</button>
+          
+          <div class="modal-tabs">
+            <button id="tab-login-student" class="m-tab-btn active" onclick="switchLoginTab('student')">Student Login</button>
+            <button id="tab-login-teacher" class="m-tab-btn" onclick="switchLoginTab('teacher')">Teacher Login</button>
+          </div>
+
+          <form id="form-login-student" onsubmit="handleAuthSubmit(event, 'login-student')">
+            <div class="input-element">
+              <label for="login-student-id">Student ID</label>
+              <input type="text" id="login-student-id" placeholder="e.g., 201-115-000" required>
+            </div>
+            <div class="input-element">
+              <label for="login-student-pass">Password</label>
+              <input type="password" id="login-student-pass" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-action-submit">Access Student Gateway</button>
+          </form>
+
+          <form id="form-login-teacher" class="hidden" onsubmit="handleAuthSubmit(event, 'login-teacher')">
+            <div class="input-element">
+              <label for="login-teacher-email">Teacher Gmail / Email</label>
+              <input type="email" id="login-teacher-email" placeholder="name@metrouni.edu.bd" required>
+            </div>
+            <div class="input-element">
+              <label for="login-teacher-pass">Password</label>
+              <input type="password" id="login-teacher-pass" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-action-submit">Access Faculty Terminal</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="registerModal" class="modal-overlay hidden">
+        <div class="modal-card">
+          <button class="close-modal-btn" onclick="closeAllModals()">&times;</button>
+          
+          <div class="modal-tabs">
+            <button id="tab-reg-student" class="m-tab-btn active" onclick="switchRegisterTab('student')">Student Registration</button>
+            <button id="tab-reg-teacher" class="m-tab-btn" onclick="switchRegisterTab('teacher')">Teacher Registration</button>
+          </div>
+
+          <form id="form-reg-student" onsubmit="handleAuthSubmit(event, 'register-student')">
+            <div class="input-element">
+              <label for="reg-student-name">Full Name</label>
+              <input type="text" id="reg-student-name" placeholder="John Doe" required>
+            </div>
+            <div class="input-element">
+              <label for="reg-student-id">Student ID</label>
+              <input type="text" id="reg-student-id" placeholder="e.g., 201-115-000" required>
+            </div>
+            <div class="input-element">
+              <label for="reg-student-pass">Create Password</label>
+              <input type="password" id="reg-student-pass" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-action-submit">Register Student Account</button>
+          </form>
+
+          <form id="form-reg-teacher" class="hidden" onsubmit="handleAuthSubmit(event, 'register-teacher')">
+            <div class="input-element">
+              <label for="reg-teacher-name">Full Name</label>
+              <input type="text" id="reg-teacher-name" placeholder="Faculty Name" required>
+            </div>
+            <div class="input-element">
+              <label for="reg-teacher-email">Gmail Address</label>
+              <input type="email" id="reg-teacher-email" placeholder="metrouni@gmail.com" required>
+            </div>
+            <div class="input-element">
+              <label for="reg-teacher-pass">Create Password</label>
+              <input type="password" id="reg-teacher-pass" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-action-submit">Register Faculty Account</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="adminModal" class="modal-overlay hidden">
+        <div class="modal-card">
+          <button class="close-modal-btn" onclick="closeAllModals()">&times;</button>
+          
+          <div class="modal-tabs">
+            <button class="m-tab-btn active admin-tab-btn">🔑 Administrative Portal Security Gate</button>
+          </div>
+
+          <form id="form-login-admin" onsubmit="handleAuthSubmit(event, 'login-admin')">
+            <div class="input-element">
+              <label for="admin-email">Institutional Administrative Gmail</label>
+              <input type="email" id="admin-email" placeholder="admin@metrouni.edu.bd" required>
+            </div>
+            <div class="input-element">
+              <label for="admin-pass">Secret Security Key</label>
+              <input type="password" id="admin-pass" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-action-submit admin-color">Authenticate Terminal Node</button>
+          </form>
+        </div>
+      </div>
+      <div class="content-body">
+        <img src="examhall.jpg" alt="Hall" class="H" height="300" width="850">
+        
+        <section id="welcome" class="content-section">
+          <div class="hero-banner">
+            <h1>Secure, Automated Seating Environments</h1>
+            <p>Welcome to the ExamNexus automation node. Access active scheduling arrays, review structural hall configurations, or authenticate your profile via the primary gateway triggers above.</p>
+          </div>
+        </section>
+
+        <section id="admin-panel" class="content-section hidden">
+          <div class="content-card admin-card-custom">
+            <h2 class="admin-card-title"><i class="fa-solid fa-screwdriver-wrench"></i> Administrative Command Core</h2>
+            <hr class="admin-card-divider">
+            <p>Authorization confirmed. You have entered the structural configuration terminal array. Accessing core seat distribution parameters.</p>
+            <div class="alert-box">
+              <strong>System Security Status:</strong> Clearance Level 1 Confirmed. Active logging active on this session.
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>
