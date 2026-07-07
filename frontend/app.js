@@ -203,3 +203,22 @@ window.addEventListener('click', (e) => {
         closeAllModals();
     }
 });
+
+async function submitLogin() {
+    const response = await fetch("http://localhost/EXAM/backend/api.php?action=login", {
+        method: "POST",
+        body: JSON.stringify({ /* login data */ })
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === "success") {
+        
+       // --- UPDATE YOUR LOGIN SUCCESS REDIRECT ---
+     sessionStorage.setItem("examshield_admin_logged", "true");
+
+// Change window.location.href to this:
+     window.location.replace("admin.html");
+    }
+}
+

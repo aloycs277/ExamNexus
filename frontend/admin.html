@@ -1,103 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExamShield | Admin Control Center</title>
+    <title>ExamShield | Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-body: #f4f7f6;
-            --sidebar-bg: #1e293b;
-            --accent: #3b82f6;
-            --text-main: #334155;
-            --white: #ffffff;
-        }
-
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg-body); color: var(--text-main); overflow: hidden; }
-        .admin-wrapper { display: flex; height: 100vh; }
-
-        /* Sidebar Styling */
-        .admin-sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 20px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
-        .sidebar-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-        .admin-nav { flex: 1; }
-        .nav-link { 
-            display: block; color: #94a3b8; text-decoration: none; padding: 12px 15px; 
-            border-radius: 8px; margin-bottom: 8px; transition: 0.3s; cursor: pointer;
-        }
-        .nav-link:hover, .nav-link.active { background: var(--accent); color: white; }
-        .nav-link i { margin-right: 12px; width: 20px; }
-
-        /* Main Workspace */
-        .admin-main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .admin-topbar { background: var(--white); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
-        .system-status { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 8px; }
-        .dot { height: 8px; width: 8px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
-
-        /* Tab Content */
-        .tab-content { padding: 30px; animation: fadeIn 0.4s ease; }
-        .hidden { display: none !important; }
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-
-        /* Tables & Cards */
-        .admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
-        .admin-table th { background: #f8fafc; font-weight: 600; }
-        
-        .hall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .hall-card { background: white; padding: 20px; border-radius: 10px; border-left: 5px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        /* Buttons */
-        .btn-add, .btn-generate { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-report { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-
-        /* Modals */
-        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:1000; }
-        .modal-card { background: #1e293b; color: white; width: 450px; border-radius: 12px; padding: 2rem; position: relative; }
-        .input-element { margin-bottom: 15px; }
-        .input-element label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #94a3b8; }
-        .input-element input, .input-element select { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; box-sizing: border-box; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 1; } 70% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(0.95); opacity: 1; } }
-    </style>
 </head>
-<body>
 
+<body>
     <div class="admin-wrapper">
         <aside class="admin-sidebar">
             <div class="sidebar-header">
-                <h2 style="margin:0; color:var(--accent);">ExamShield</h2>
-                <small>University Management</small>
+                <h2 class="sidebar-brand">ExamShield</h2>
+                <small>MySQL Workspace</small>
             </div>
             <nav class="admin-nav">
-                <a class="nav-link active" onclick="switchTab('profiles')"><i class="fas fa-users-cog"></i> User Management</a>
-                <a class="nav-link" onclick="switchTab('halls')"><i class="fas fa-building"></i> Hall Configuration</a>
-                <a class="nav-link" onclick="switchTab('seating')"><i class="fas fa-th"></i> Anti-Cheat Seating</a>
-                <a class="nav-link" onclick="switchTab('invigilation')"><i class="fas fa-user-tie"></i> Invigilation Duty</a>
-                <a class="nav-link" onclick="switchTab('reports')"><i class="fas fa-file-pdf"></i> Reports & Prints</a>
+                <a class="nav-link active" onclick="switchTab(event, 'profiles')"><i class="fas fa-users-cog"></i> User
+                    Management</a>
+                <a class="nav-link" onclick="switchTab(event, 'halls')"><i class="fas fa-building"></i> Hall
+                    Configuration</a>
+                <a class="nav-link" onclick="switchTab(event, 'seating')"><i class="fas fa-th"></i> Anti-Cheat
+                    Seating</a>
+
+                <a class="nav-link" onclick="switchTab(event, 'invigilation')"><i class="fas fa-user-tie"></i>
+                    Invigilation Duty</a>
             </nav>
             <div class="sidebar-footer">
-                <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
-                <a href="index.html" style="color: #ef4444; text-decoration: none; font-weight: bold;"><i class="fas fa-power-off"></i> Logout</a>
+                <a onclick="window.location.replace('http://localhost/EXAM/frontend/index.html');">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </a>
             </div>
         </aside>
+
+
 
         <main class="admin-main">
             <header class="admin-topbar">
                 <h2 id="currentTabTitle">User Management</h2>
-                <div class="system-status"><span class="dot"></span> Database Online</div>
+                <div class="system-status" id="dbStatusIndicator">
+                    <span class="dot" id="dbStatusDot"></span>
+                    <span id="dbStatusText">Checking Connection...</span>
+                </div>
             </header>
 
             <div id="profiles" class="tab-content">
                 <div class="content-header">
                     <h3>System Records</h3>
-                    <button class="btn-add" onclick="openUserModal()">+ Add New Profile</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-add" style="background:#475569;" onclick="openBulkModal()">Bulk CSV
+                            Import</button>
+                        <button class="btn-add" onclick="openUserModal()">+ Add Profile</button>
+                        <button class="btn-danger" onclick="wipeAllStudents()">Clear Students</button>
+                    </div>
                 </div>
                 <table class="admin-table">
                     <thead>
-                        <tr><th>Identifier</th><th>Name</th><th>Role</th><th>Dept</th><th>Action</th></tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Dept</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody id="profilesTableBody"></tbody>
                 </table>
@@ -112,46 +78,41 @@
             </div>
 
             <div id="seating" class="tab-content hidden">
-                <h3>Automatic Anti-Cheat Engine</h3>
-                <div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
-                    <p>Algorithm: <strong>Departmental Interleaving</strong> (Students from same Dept are never adjacent).</p>
-                    <button class="btn-generate" onclick="runAllocationEngine()">🚀 Run Smart Allocation</button>
+                <h3>Dual-Seating Interleaving Allocation</h3>
+                <div class="algorithm-info-card">
+                    <p>Arrangement Rule: <strong>Row-wise Alternation.</strong> 2 students per desk (Left vs Right must
+                        be distinct departments).</p>
+                    <button class="btn-generate" onclick="runAllocationEngine()">🚀 Generate Seating Layout</button>
                 </div>
-                <div id="seatingResult" class="hidden">
-                    <table class="admin-table">
-                        <thead><tr><th>Seat</th><th>Student ID</th><th>Name</th><th>Dept</th><th>Room</th></tr></thead>
-                        <tbody id="seatingTableBody"></tbody>
-                    </table>
-                </div>
+                <div id="seatingResult" class="hidden"></div>
             </div>
 
             <div id="invigilation" class="tab-content hidden">
-                <h3>Teacher Duty Assignment</h3>
-                <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <form id="dutyForm" onsubmit="saveDuty(event)" style="display:flex; gap:15px; align-items: flex-end;">
-                        <div class="input-element" style="flex:1; margin:0;">
-                            <label>Select Teacher</label>
-                            <select id="dutyTeacher" style="background: #f8fafc; color: black; border: 1px solid #cbd5e1;"></select>
+                <h3>Teacher Duty Scheduler</h3>
+                <div class="duty-form-card">
+                    <form id="dutyForm" class="duty-flex-form">
+                        <div class="input-element duty-flex-input">
+                            <label>Teacher</label>
+                            <select id="dutyTeacher"></select>
                         </div>
-                        <div class="input-element" style="flex:1; margin:0;">
-                            <label>Select Hall</label>
-                            <select id="dutyHall" style="background: #f8fafc; color: black; border: 1px solid #cbd5e1;"></select>
+                        <div class="input-element duty-flex-input">
+                            <label>Hall</label>
+                            <select id="dutyHall"></select>
                         </div>
-                        <button type="submit" class="btn-add" style="height: 40px;">Assign Duty</button>
+                        <button type="submit" class="btn-add duty-submit-btn">Assign Duty</button>
                     </form>
                 </div>
                 <table class="admin-table">
-                    <thead><tr><th>Teacher</th><th>Room Assigned</th><th>Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Room</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="dutyTableBody"></tbody>
                 </table>
-            </div>
-
-            <div id="reports" class="tab-content hidden">
-                <h3>Print & Export Center</h3>
-                <div style="display: flex; gap: 20px;">
-                    <button class="btn-report" onclick="alert('Generating Seating Plan PDF...')"><i class="fas fa-download"></i> Export Seating Plan</button>
-                    <button class="btn-report" style="background:#6366f1;" onclick="alert('Generating Attendance PDF...')"><i class="fas fa-print"></i> Print Attendance</button>
-                </div>
             </div>
         </main>
     </div>
@@ -159,16 +120,17 @@
     <div id="userModal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3>New User Profile</h3>
-            <form id="userForm" onsubmit="saveUser(event)">
+            <form id="userForm">
                 <div class="input-element">
                     <label>Role</label>
-                    <select id="uRole" onchange="updatePlaceholder()">
+                    <select id="uRole">
                         <option value="student">Student</option>
                         <option value="teacher">Teacher</option>
                     </select>
                 </div>
                 <div class="input-element"><label>Name</label><input type="text" id="uName" required></div>
-                <div class="input-element"><label id="idLabel">Student ID</label><input type="text" id="uID" required></div>
+                <div class="input-element"><label id="idLabel">Student ID</label><input type="text" id="uID" required>
+                </div>
                 <div class="input-element">
                     <label>Department</label>
                     <select id="uDept">
@@ -177,130 +139,50 @@
                         <option value="BBA">BBA</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-add" style="width:100%;">Save Profile</button>
-                <button type="button" onclick="closeUserModal()" style="width:100%; margin-top:10px; background:transparent; color:#94a3b8; border:none; cursor:pointer;">Cancel</button>
+                <button type="submit" class="btn-add w-100">Save Profile</button>
+                <button type="button" onclick="closeUserModal()" class="btn-modal-cancel">Cancel</button>
             </form>
+        </div>
+    </div>
+
+    <div id="bulkModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Bulk Import Roster</h3>
+            <textarea id="csvPasteArea" rows="8" placeholder="Format: ID, Name, Department (One per line)"
+                style="width:100%; border-radius:8px; padding:10px; box-sizing:border-box; font-family:monospace;"></textarea>
+            <button class="btn-add w-100" style="margin-top:10px;" onclick="processBulkCSV()">Process & Save to
+                MySQL</button>
+            <button type="button" onclick="closeBulkModal()" class="btn-modal-cancel">Cancel</button>
         </div>
     </div>
 
     <div id="hallModal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3>Configure Hall</h3>
-            <form onsubmit="saveHall(event)">
-                <div class="input-element"><label>Room Number</label><input type="text" id="hRoom" required placeholder="A-101"></div>
+            <form id="hallForm">
+                <div class="input-element"><label>Room Number</label><input type="text" id="hRoom" required></div>
                 <div class="input-element"><label>Total Seats</label><input type="number" id="hCap" required></div>
-                <button type="submit" class="btn-add" style="width:100%;">Save Hall</button>
-                <button type="button" onclick="closeHallModal()" style="width:100%; margin-top:10px; background:transparent; color:#94a3b8; border:none; cursor:pointer;">Cancel</button>
+                <button type="submit" class="btn-add w-100">Save Hall</button>
+                <button type="button" onclick="closeHallModal()" class="btn-modal-cancel">Cancel</button>
             </form>
         </div>
     </div>
 
-    <script>
-        // DATA STORAGE
-        let users = [
-            { id: "201-115-001", name: "Alice", role: "student", dept: "CSE" },
-            { id: "201-115-002", name: "Bob", role: "student", dept: "EEE" },
-            { id: "teacher@mu.edu", name: "Prof. Khan", role: "teacher", dept: "CSE" }
-        ];
-        let halls = [{ room: "A-101", capacity: 40 }];
-        let duties = [];
+    <div id="editHallModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Modify Hall Configuration</h3>
+            <form id="editHallForm">
+                <div class="input-element"><label>Room Number</label><input type="text" id="editHRoom" readonly
+                        style="background:#f1f5f9; color:#64748b;"></div>
+                <div class="input-element"><label>Total Seats</label><input type="number" id="editHCap" required></div>
+                <button type="submit" class="btn-add w-100">Update Hall Matrix</button>
+                <button type="button" onclick="closeEditHallModal()" class="btn-modal-cancel">Cancel</button>
+            </form>
+        </div>
+    </div>
 
-        // UI TAB SWITCHER
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(tabId).classList.remove('hidden');
-            event.currentTarget.classList.add('active');
-            document.getElementById('currentTabTitle').innerText = event.currentTarget.innerText;
-            if(tabId === 'invigilation') refreshDutyDropdowns();
-        }
-
-        // USER LOGIC
-        function openUserModal() { document.getElementById('userModal').classList.remove('hidden'); }
-        function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); }
-        function updatePlaceholder() {
-            const role = document.getElementById('uRole').value;
-            document.getElementById('idLabel').innerText = role === 'student' ? 'Student ID' : 'Email Address';
-        }
-        function saveUser(e) {
-            e.preventDefault();
-            users.push({
-                id: document.getElementById('uID').value,
-                name: document.getElementById('uName').value,
-                role: document.getElementById('uRole').value,
-                dept: document.getElementById('uDept').value
-            });
-            renderUsers(); closeUserModal();
-        }
-        function renderUsers() {
-            const body = document.getElementById('profilesTableBody');
-            body.innerHTML = users.map((u, i) => `
-                <tr>
-                    <td>${u.id}</td><td>${u.name}</td>
-                    <td><small>${u.role.toUpperCase()}</small></td><td>${u.dept}</td>
-                    <td><button class="btn-danger" onclick="deleteUser(${i})">Del</button></td>
-                </tr>
-            `).join('');
-        }
-        function deleteUser(i) { users.splice(i, 1); renderUsers(); }
-
-        // HALL LOGIC
-        function openHallModal() { document.getElementById('hallModal').classList.remove('hidden'); }
-        function closeHallModal() { document.getElementById('hallModal').classList.add('hidden'); }
-        function saveHall(e) {
-            e.preventDefault();
-            halls.push({ room: document.getElementById('hRoom').value, capacity: document.getElementById('hCap').value });
-            renderHalls(); closeHallModal();
-        }
-        function renderHalls() {
-            document.getElementById('hallsGridContainer').innerHTML = halls.map(h => `
-                <div class="hall-card"><h4>Room ${h.room}</h4><p>Capacity: ${h.capacity} Seats</p></div>
-            `).join('');
-        }
-
-        // ANTI-CHEAT ALGORITHM
-        function runAllocationEngine() {
-            const students = users.filter(u => u.role === 'student');
-            if(students.length === 0) return alert("No students found.");
-            
-            // Step 1: Sort by Dept to Interleave
-            let cse = students.filter(s => s.dept === 'CSE');
-            let eee = students.filter(s => s.dept === 'EEE');
-            let bba = students.filter(s => s.dept === 'BBA');
-            
-            let interleaved = [];
-            let max = Math.max(cse.length, eee.length, bba.length);
-            for(let i=0; i<max; i++) {
-                if(cse[i]) interleaved.push(cse[i]);
-                if(eee[i]) interleaved.push(eee[i]);
-                if(bba[i]) interleaved.push(bba[i]);
-            }
-
-            document.getElementById('seatingResult').classList.remove('hidden');
-            document.getElementById('seatingTableBody').innerHTML = interleaved.map((s, i) => `
-                <tr><td>Seat ${i+1}</td><td>${s.id}</td><td>${s.name}</td><td>${s.dept}</td><td>${halls[0].room}</td></tr>
-            `).join('');
-        }
-
-        // DUTY LOGIC
-        function refreshDutyDropdowns() {
-            document.getElementById('dutyTeacher').innerHTML = users.filter(u => u.role === 'teacher').map(t => `<option value="${t.name}">${t.name}</option>`).join('');
-            document.getElementById('dutyHall').innerHTML = halls.map(h => `<option value="${h.room}">${h.room}</option>`).join('');
-        }
-        function saveDuty(e) {
-            e.preventDefault();
-            duties.push({ teacher: document.getElementById('dutyTeacher').value, room: document.getElementById('dutyHall').value });
-            renderDuties();
-        }
-        function renderDuties() {
-            document.getElementById('dutyTableBody').innerHTML = duties.map(d => `
-                <tr><td>${d.teacher}</td><td>Room ${d.room}</td><td><span style="color:green">Assigned</span></td></tr>
-            `).join('');
-        }
-
-        // INIT
-        renderUsers();
-        renderHalls();
-    </script>
+    /////////////
+    <script src="admin.js"></script>
 </body>
+
 </html>
