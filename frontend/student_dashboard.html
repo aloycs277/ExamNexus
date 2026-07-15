@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Terminal - ExamNexus</title>
+  <link rel="stylesheet" href="student_style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="portal-wrapper">
+    
+    <!-- Sidebar Left Navigation Column -->
+    <aside class="sidebar">
+      <div class="profile-summary">
+        <div class="avatar-circle">🎓</div>
+        <h3 id="display-student-name">Loading Profile...</h3>
+        <p id="display-student-id">ID: 000-000-000</p>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active"><i class="fa-solid fa-border-all"></i> Seating Seat Matrix</a>
+        <a href="Routine_ Spring Term Final Exam-2026.pdf" target="_blank" class="menu-item"><i class="fa-solid fa-calendar-days"></i> Institutional Routine</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-sign-out-alt"></i> Safe Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Dynamic Interface Workspace Frame -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="portal-title">
+          <h2>Student Examination Dashboard</h2>
+        </div>
+        <div class="system-status">
+          <span class="live-pulse"></span> Network Active Node
+        </div>
+      </header>
+
+      <div class="content-body">
+        
+        <!-- Updated to use explicit Filter labels instead of search word -->
+        <div class="search-card">
+          <h3><i class="fa-solid fa-filter"></i> Live Examination Seating Filter</h3>
+          <p>Input your active Student ID below to filter down your allocated hall room matrix instantly.</p>
+          <div class="search-box-row">
+            <input type="text" id="seatSearchQuery" placeholder="Type your Student ID here..." onkeyup="filterSeatingDisplay()">
+            <button class="btn-search-trigger" onclick="filterSeatingDisplay()"><i class="fa-solid fa-sliders"></i> Filter</button>
+          </div>
+        </div>
+
+        <!-- Seating Matrix Table Grid -->
+        <div class="content-card">
+          <h3><i class="fa-solid fa-chair"></i> Allocated Seating Registry Array</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th class="room-header-cell">Hall Room</th>
+                </tr>
+              </thead>
+              <tbody id="studentSeatingGrid">
+                <tr>
+                  <td class="table-loading">Querying active seat distributions from server arrays...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="student_app.js"></script>
+</body>
+</html>

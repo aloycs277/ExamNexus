@@ -1,13 +1,9 @@
-
-// --- Core DOM Overlay Matrix Selectors ---
 const loginModal = document.getElementById('loginModal');
 const registerModal = document.getElementById('registerModal');
 const adminModal = document.getElementById('adminModal');
 
-// Hardcoded Master Admin System Accounts Verification Rules
 const MASTER_ADMIN_GMAIL = "admin@metrouni.edu.bd";
 const MASTER_ADMIN_PASS = "admin1234";
-
 
 function openLoginModal(role) {
     closeAllModals();
@@ -36,14 +32,8 @@ function closeAllModals() {
     if (loginModal) loginModal.classList.add('hidden');
     if (registerModal) registerModal.classList.add('hidden');
     if (adminModal) adminModal.classList.add('hidden');
-    
-// Completely flush active keystroke inputs safely across forms
     document.querySelectorAll('form').forEach(form => form.reset());
 }
-
-
- //INTERNAL CONTROL TAB LOGIC RULES
-
 
 function switchLoginTab(role) {
     const studentForm = document.getElementById('form-login-student');
@@ -83,94 +73,191 @@ function switchRegisterTab(role) {
     }
 }
 
+function ensureSupabaseClient() {
+    const client = window.supabaseClient || window.supabase;
+    if (!client) {
+        alert('Supabase is not configured yet. Update the placeholders in frontend/supabase-config.js with your project URL and anon key.');
+        return false;
+    }
+    window.supabase = client;
+    return true;
+}
 
-//SECURE AUTH SUBMISSION MATRIX EVALUATION
-
-
-function handleAuthSubmit(event, actionType) {
+async function handleAuthSubmit(event, actionType) {
     event.preventDefault();
 
-    // Student Signup Logic Array
-    if (actionType === 'register-student') {
-        const name = document.getElementById('reg-student-name').value;
-        const id = document.getElementById('reg-student-id').value;
-        const pass = document.getElementById('reg-student-pass').value;
-
-        localStorage.setItem(`student_${id}`, JSON.stringify({ name: name, pass: pass }));
-        alert(`Account Registered.\nID: ${id}\nYou can now access the login gateway.`);
-        closeAllModals();
-    } 
-    
-    // Teacher Signup Logic Array
-    else if (actionType === 'register-teacher') {
-        const name = document.getElementById('reg-teacher-name').value;
-        const email = document.getElementById('reg-teacher-email').value;
-        const pass = document.getElementById('reg-teacher-pass').value;
-
-        localStorage.setItem(`teacher_${email.toLowerCase()}`, JSON.stringify({ name: name, pass: pass }));
-        alert(`Faculty Profile Stored.\nEmail: ${email}\nYou can now log in.`);
-        closeAllModals();
-    } 
-    
-    // Student Login Validation Checking
-    else if (actionType === 'login-student') {
-        const id = document.getElementById('login-student-id').value;
-        const pass = document.getElementById('login-student-pass').value;
-        const storedAccount = localStorage.getItem(`student_${id}`);
-
-        if (storedAccount) {
-            const accountData = JSON.parse(storedAccount);
-            if (accountData.pass === pass) {
-                alert(`Welcome back, ${accountData.name}! Student session authenticated.`);
-                closeAllModals();
-            } else {
-                alert("Incorrect entry code credential data.");
-            }
-        } else {
-            alert("No account profile matches this identity array. Please execute system registration first.");
-        }
-    } 
-    
-    // Teacher Login Validation Checking
-    else if (actionType === 'login-teacher') {
-        const email = document.getElementById('login-teacher-email').value.toLowerCase();
-        const pass = document.getElementById('login-teacher-pass').value;
-        const storedAccount = localStorage.getItem(`teacher_${email}`);
-
-        if (storedAccount) {
-            const accountData = JSON.parse(storedAccount);
-            if (accountData.pass === pass) {
-                alert(`Faculty Connection Secure. Welcome back, Professor ${accountData.name}.`);
-                closeAllModals();
-            } else {
-                alert("Incorrect password mapping sequence.");
-            }
-        } else {
-            alert("No existing record matches this institutional email array.");
-        }
+    if (!ensureSupabaseClient()) {
+        return;
     }
-    
-    // Secure Hardcoded Master Admin Authentication Rule Matrix Execution
-    else if (actionType === 'login-admin') {
+
+    if (actionType === 'login-admin') {
         const inputtedEmail = document.getElementById('admin-email').value.trim().toLowerCase();
         const inputtedPass = document.getElementById('admin-pass').value;
 
         if (inputtedEmail === MASTER_ADMIN_GMAIL && inputtedPass === MASTER_ADMIN_PASS) {
-            alert("Authorization Confirmed. Deploying Admin Node Workspace...");
+            alert('Authorization Confirmed. Deploying Admin Node Workspace...');
+            sessionStorage.setItem('examshield_admin_logged', 'true');
             closeAllModals();
-            window.location.href = "admin.html";
+            window.location.replace('admin.html');
         } else {
-            alert("Access Denied: Invalid Administrative Credentials Detected.");
+            alert('Access Denied: Invalid Administrative Credentials Detected.');
         }
+        return;
+    }
+
+    let payload = {};
+
+    if (actionType === 'register-student') {
+        const id = document.getElementById('reg-student-id').value.trim();
+        payload = {
+            id,
+            name: document.getElementById('reg-student-name').value.trim(),
+            email: `${id}@metrouni.edu.bd`,
+            password: document.getElementById('reg-student-pass').value,
+            role: 'student',
+            dept: 'CSE'
+        };
+    } else if (actionType === 'register-teacher') {
+        const email = document.getElementById('reg-teacher-email').value.trim();
+        payload = {
+            id: email.split('@')[0],
+            name: document.getElementById('reg-teacher-name').value.trim(),
+            email,
+            password: document.getElementById('reg-teacher-pass').value,
+            role: 'teacher',
+            dept: 'CSE'
+        };
+    } else if (actionType === 'login-student') {
+        payload = {
+            uid_email: document.getElementById('login-student-id').value.trim(),
+            password: document.getElementById('login-student-pass').value
+        };
+    } else if (actionType === 'login-teacher') {
+        payload = {
+            uid_email: document.getElementById('login-teacher-email').value.trim(),
+            password: document.getElementById('login-teacher-pass').value
+        };
+    }
+
+    try {
+        if (actionType.startsWith('register')) {
+            const { data: existingById, error: existingIdError } = await window.supabase
+                .from('users')
+                .select('id')
+                .eq('id', payload.id)
+                .maybeSingle();
+
+            if (existingIdError) {
+                console.error('Supabase duplicate check error:', existingIdError);
+                alert(`Registration failed: ${existingIdError.message}`);
+                return;
+            }
+
+            const { data: existingByEmail, error: existingEmailError } = await window.supabase
+                .from('users')
+                .select('id')
+                .eq('email', payload.email)
+                .maybeSingle();
+
+            if (existingEmailError) {
+                console.error('Supabase email duplicate check error:', existingEmailError);
+                alert(`Registration failed: ${existingEmailError.message}`);
+                return;
+            }
+
+            const existingUser = existingById || existingByEmail;
+
+            let result;
+            if (existingUser) {
+                result = await window.supabase
+                    .from('users')
+                    .update({
+                        name: payload.name,
+                        email: payload.email,
+                        password: payload.password,
+                        role: payload.role,
+                        dept: payload.dept
+                    })
+                    .eq('id', payload.id)
+                    .select('id,name,role')
+                    .single();
+            } else {
+                result = await window.supabase
+                    .from('users')
+                    .insert([payload])
+                    .select('id,name,role')
+                    .single();
+            }
+
+            if (result.error) {
+                console.error('Supabase insert/update error:', result.error);
+                alert(`Registration failed: ${result.error.message}`);
+                return;
+            }
+
+            closeAllModals();
+            alert(`Account created successfully for ${result.data.name}. You can now log in.`);
+            return;
+        }
+
+        const credential = payload.uid_email;
+        const password = payload.password;
+
+        const { data: byId, error: byIdError } = await window.supabase
+            .from('users')
+            .select('id,name,role,dept')
+            .eq('id', credential)
+            .eq('password', password)
+            .maybeSingle();
+
+        if (byIdError) {
+            console.error('Supabase login lookup error:', byIdError);
+            alert(`Login lookup failed: ${byIdError.message}`);
+            return;
+        }
+
+        let user = byId;
+
+        if (!user) {
+            const { data: byEmail, error: byEmailError } = await window.supabase
+                .from('users')
+                .select('id,name,role,dept')
+                .eq('email', credential)
+                .eq('password', password)
+                .maybeSingle();
+
+            if (byEmailError) {
+                console.error('Supabase email login lookup error:', byEmailError);
+                alert(`Login lookup failed: ${byEmailError.message}`);
+                return;
+            }
+            user = byEmail;
+        }
+
+        if (!user) {
+            alert('Authentication failed. Check your ID/email and password.');
+            return;
+        }
+
+        closeAllModals();
+        alert(`Authentication confirmed. Welcome back, ${user.name}!`);
+
+        sessionStorage.setItem('logged_user_id', user.id);
+        sessionStorage.setItem('logged_user_name', user.name);
+        sessionStorage.setItem('logged_user_role', user.role);
+
+        if (user.role === 'teacher') {
+            window.location.replace('teacher_dashboard.html');
+        } else {
+            window.location.replace('student_dashboard.html');
+        }
+    } catch (err) {
+        console.error('Supabase auth exception:', err);
+        alert(`Authentication gateway issue: ${err.message || err}`);
     }
 }
 
-
-//INTERFACE SWITCH CONTROLLER MODULES
-
-
 function switchSection(targetSectionId) {
-    // Hide specialized admin console workspace if standard links are clicked
     document.getElementById('admin-panel').classList.add('hidden');
     document.getElementById('welcome').classList.remove('hidden');
 
@@ -185,40 +272,16 @@ function switchSection(targetSectionId) {
 }
 
 function showAdminDashboardSection() {
-    // Hide default home page structure layout configuration nodes
     document.getElementById('welcome').classList.add('hidden');
-    
-    // Surface the secure hidden control panel card cleanly
     document.getElementById('admin-panel').classList.remove('hidden');
-    
-    // Pull highlighters from normal navigation options
+
     document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
         item.classList.remove('active');
     });
 }
 
-// Global modal window dismissal handler 
 window.addEventListener('click', (e) => {
     if (e.target === loginModal || e.target === registerModal || e.target === adminModal) {
         closeAllModals();
     }
 });
-
-async function submitLogin() {
-    const response = await fetch("http://localhost/EXAM/backend/api.php?action=login", {
-        method: "POST",
-        body: JSON.stringify({ /* login data */ })
-    });
-    
-    const data = await response.json();
-    
-    if (data.status === "success") {
-        
-       // --- UPDATE YOUR LOGIN SUCCESS REDIRECT ---
-     sessionStorage.setItem("examshield_admin_logged", "true");
-
-// Change window.location.href to this:
-     window.location.replace("admin.html");
-    }
-}
-

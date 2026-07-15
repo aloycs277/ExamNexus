@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Portal - ExamNexus</title>
+  <link rel="stylesheet" href="teacher_style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="portal-wrapper">
+    
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="profile-summary">
+        <div class="avatar-circle">👨‍🏫</div>
+        <h3 id="display-teacher-name">Faculty Terminal</h3>
+        <p id="display-teacher-desig">Invigilator Panel</p>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active"><i class="fa-solid fa-clipboard-list"></i> My Invigilations</a>
+        <a href="Routine_ Spring Term Final Exam-2026.pdf" target="_blank" class="menu-item"><i class="fa-solid fa-calendar-days"></i> Full Exam Schedule</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-sign-out-alt"></i> Safe Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Frame -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="portal-title">
+          <h2>Teacher Invigilation Dashboard</h2>
+        </div>
+        <div class="system-status">
+          <span class="live-pulse"></span> Terminal Connected
+        </div>
+      </header>
+
+      <div class="content-body">
+        
+        <!-- Live Invigilation Desk Search -->
+        <div class="search-card">
+          <h3><i class="fa-solid fa-magnifying-glass"></i> Live Invigilation Desk Search</h3>
+          <p>Search your name below to instantly isolate your current assigned vectors, room numbers, and dates fixed by the administrator.</p>
+          <div class="search-box-row">
+            <input type="text" id="teacherSearchQuery" placeholder="Enter Teacher's Name (e.g., Dr. Smith)" onkeyup="filterTeacherSchedule()">
+            <button class="btn-search-trigger" onclick="filterTeacherSchedule()"><i class="fa-solid fa-filter"></i> Filter</button>
+          </div>
+        </div>
+
+        <!-- Master Active Hall Registry -->
+        <div class="content-card">
+          <h3><i class="fa-solid fa-building-user"></i> Master Active Hall Registry</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invigilator Name</th>
+                  <th>Assigned Room Location</th>
+                  <th>Exam Date</th>
+                </tr>
+              </thead>
+              <tbody id="teacherScheduleGrid">
+                <tr>
+                  <td colspan="5" class="table-loading">Querying active seat distributions from server arrays...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="teacher_app.js"></script>
+</body>
+</html>

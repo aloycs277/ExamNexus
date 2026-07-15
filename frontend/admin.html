@@ -10,6 +10,7 @@
 </head>
 
 <body>
+
     <div class="admin-wrapper">
         <aside class="admin-sidebar">
             <div class="sidebar-header">
@@ -23,7 +24,6 @@
                     Configuration</a>
                 <a class="nav-link" onclick="switchTab(event, 'seating')"><i class="fas fa-th"></i> Anti-Cheat
                     Seating</a>
-
                 <a class="nav-link" onclick="switchTab(event, 'invigilation')"><i class="fas fa-user-tie"></i>
                     Invigilation Duty</a>
             </nav>
@@ -34,8 +34,6 @@
             </div>
         </aside>
 
-
-
         <main class="admin-main">
             <header class="admin-topbar">
                 <h2 id="currentTabTitle">User Management</h2>
@@ -45,6 +43,7 @@
                 </div>
             </header>
 
+            <!-- USER MANAGEMENT TAB -->
             <div id="profiles" class="tab-content">
                 <div class="content-header">
                     <h3>System Records</h3>
@@ -53,6 +52,7 @@
                             Import</button>
                         <button class="btn-add" onclick="openUserModal()">+ Add Profile</button>
                         <button class="btn-danger" onclick="wipeAllStudents()">Clear Students</button>
+                        <button class="btn-danger" onclick="wipeAllTeachers()">Clear Teachers</button>
                     </div>
                 </div>
                 <table class="admin-table">
@@ -62,21 +62,25 @@
                             <th>Name</th>
                             <th>Role</th>
                             <th>Dept</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="profilesTableBody"></tbody>
                 </table>
             </div>
 
+            <!-- HALL CONFIGURATION TAB -->
             <div id="halls" class="tab-content hidden">
                 <div class="content-header">
                     <h3>Exam Centers</h3>
-                    <button class="btn-add" onclick="openHallModal()">+ New Hall</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-add" onclick="openHallModal()">+ New Hall</button>
+                        <button class="btn-danger" onclick="wipeAllHalls()">Clear Halls</button>
+                    </div>
                 </div>
                 <div class="hall-grid" id="hallsGridContainer"></div>
             </div>
 
+            <!-- ANTI-CHEAT SEATING TAB -->
             <div id="seating" class="tab-content hidden">
                 <h3>Dual-Seating Interleaving Allocation</h3>
                 <div class="algorithm-info-card">
@@ -87,8 +91,12 @@
                 <div id="seatingResult" class="hidden"></div>
             </div>
 
+            <!-- INVIGILATION DUTY TAB -->
             <div id="invigilation" class="tab-content hidden">
-                <h3>Teacher Duty Scheduler</h3>
+                <div class="content-header">
+                    <h3>Teacher Duty Scheduler</h3>
+                    <button class="btn-danger" onclick="wipeAllInvigilators()">Clear Invigilators</button>
+                </div>
                 <div class="duty-form-card">
                     <form id="dutyForm" class="duty-flex-form">
                         <div class="input-element duty-flex-input">
@@ -99,6 +107,12 @@
                             <label>Hall</label>
                             <select id="dutyHall"></select>
                         </div>
+                        <!-- ADDED: Date selection input vector -->
+                        <div class="input-element duty-flex-input">
+                            <label>Exam Date</label>
+                            <input type="date" id="dutyDate" required
+                                style="padding: 8px; border-radius: 4px; border: 1px solid #334155; background-color: #0f172a; color: #fff;">
+                        </div>
                         <button type="submit" class="btn-add duty-submit-btn">Assign Duty</button>
                     </form>
                 </div>
@@ -107,8 +121,9 @@
                         <tr>
                             <th>Teacher</th>
                             <th>Room</th>
+                            <!-- ADDED: Exam date table heading -->
+                            <th>Exam Date</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="dutyTableBody"></tbody>
@@ -117,6 +132,7 @@
         </main>
     </div>
 
+    <!-- MODALS STAY UNCHANGED -->
     <div id="userModal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3>New User Profile</h3>
@@ -168,20 +184,8 @@
         </div>
     </div>
 
-    <div id="editHallModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h3>Modify Hall Configuration</h3>
-            <form id="editHallForm">
-                <div class="input-element"><label>Room Number</label><input type="text" id="editHRoom" readonly
-                        style="background:#f1f5f9; color:#64748b;"></div>
-                <div class="input-element"><label>Total Seats</label><input type="number" id="editHCap" required></div>
-                <button type="submit" class="btn-add w-100">Update Hall Matrix</button>
-                <button type="button" onclick="closeEditHallModal()" class="btn-modal-cancel">Cancel</button>
-            </form>
-        </div>
-    </div>
-
-    /////////////
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="admin.js"></script>
 </body>
 

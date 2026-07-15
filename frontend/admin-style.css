@@ -65,7 +65,8 @@ body {
 
 .btn-add, .btn-generate { background: var(--accent); color: var(--white); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
 .btn-add:hover, .btn-generate:hover { background: var(--accent-hover); }
-.btn-danger { background: #fee2e2; color: #ef4444; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.btn-danger { background: #fee2e2; color: #ef4444; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+.btn-danger:hover { background: #fca5a5; }
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-card { background: var(--white); width: 400px; border-radius: 16px; padding: 32px; border: 1px solid var(--border-color); }
@@ -76,54 +77,6 @@ body {
 .w-100 { width: 100%; }
 .duty-submit-btn { height: 40px; }
 
-/* Inline and Utility Controls for Modifications */
-.table-action-btn {
-    background: transparent;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-size: 0.95rem;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-.table-action-btn:hover {
-    background: #fee2e2;
-}
-.hall-controls-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 12px;
-}
-.btn-card-edit {
-    background: #f1f5f9;
-    color: #334155;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-.btn-card-edit:hover {
-    background: #cbd5e1;
-}
-.btn-card-delete {
-    background: #fee2e2;
-    color: #ef4444;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-.btn-card-delete:hover {
-    background: #fca5a5;
-}
 .status-assigned-tag {
     background: #e0f2fe;
     color: #0369a1;
@@ -132,4 +85,3 @@ body {
     font-size: 0.8rem;
     font-weight: 600;
 }
-
