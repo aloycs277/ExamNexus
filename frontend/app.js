@@ -165,32 +165,22 @@ async function handleAuthSubmit(event, actionType) {
                 return;
             }
 
-            const existingUser = existingById || existingByEmail;
-
-            let result;
-            if (existingUser) {
-                result = await window.supabase
-                    .from('users')
-                    .update({
-                        name: payload.name,
-                        email: payload.email,
-                        password: payload.password,
-                        role: payload.role,
-                        dept: payload.dept
-                    })
-                    .eq('id', payload.id)
-                    .select('id,name,role')
-                    .single();
-            } else {
-                result = await window.supabase
-                    .from('users')
-                    .insert([payload])
-                    .select('id,name,role')
-                    .single();
+            if (existingById || existingByEmail) {
+                const duplicateField = existingById ? 'ID' : 'Email';
+                const duplicateValue = existingById ? payload.id : payload.email;
+                const actionLabel = actionType === 'register-student' ? 'student ID' : 'teacher email';
+                alert(`Registration blocked: ${duplicateField} ${duplicateValue} is already in use. Please log in or choose a different ${actionLabel}.`);
+                return;
             }
 
+            const result = await window.supabase
+                .from('users')
+                .insert([payload])
+                .select('id,name,role')
+                .single();
+
             if (result.error) {
-                console.error('Supabase insert/update error:', result.error);
+                console.error('Supabase insert error:', result.error);
                 alert(`Registration failed: ${result.error.message}`);
                 return;
             }
