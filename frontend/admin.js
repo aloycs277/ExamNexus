@@ -38,11 +38,13 @@ async function loadAllData() {
     try {
         const { data: usersData, error: usersError } = await window.supabase
             .from('users')
-            .select('id,name,role,dept')
+            .select('id,name,role,dept,email')
             .order('name');
         if (usersError) throw usersError;
         users = usersData || [];
         renderUsers();
+        renderStudentRegistry();
+        renderTeacherRegistry();
 
         const { data: hallsData, error: hallsError } = await window.supabase
             .from('halls')
@@ -113,16 +115,60 @@ async function saveUser(e) {
     e.preventDefault();
     if (!ensureSupabaseClient()) return;
 
+    const rawIdentifier = document.getElementById('uID').value.trim();
+    const role = document.getElementById('uRole').value;
+    const name = document.getElementById('uName').value.trim();
+    const dept = document.getElementById('uDept').value;
+
+    if (!rawIdentifier || !name) {
+        return alert('Please enter both name and identifier before saving.');
+    }
+
     const payload = {
-        id: document.getElementById('uID').value.trim(),
-        name: document.getElementById('uName').value.trim(),
-        role: document.getElementById('uRole').value,
-        dept: document.getElementById('uDept').value,
-        email: `${document.getElementById('uID').value.trim()}@metrouni.edu.bd`,
+        name,
+        role,
+        dept,
         password: 'temp123'
     };
 
-    const { error } = await window.supabase.from('users').upsert([payload], { onConflict: 'id' });
+    if (role === 'student') {
+        payload.id = rawIdentifier;
+        payload.email = `${rawIdentifier}@metrouni.edu.bd`;
+    } else {
+        payload.id = rawIdentifier.toLowerCase();
+        payload.email = rawIdentifier.toLowerCase();
+    }
+
+    const { data: existingId, error: idError } = await window.supabase
+        .from('users')
+        .select('id')
+        .eq('id', payload.id)
+        .maybeSingle();
+
+    if (idError) {
+        alert('Unable to validate user uniqueness: ' + idError.message);
+        return;
+    }
+
+    const { data: existingEmail, error: emailError } = await window.supabase
+        .from('users')
+        .select('id')
+        .eq('email', payload.email)
+        .maybeSingle();
+
+    if (emailError) {
+        alert('Unable to validate email uniqueness: ' + emailError.message);
+        return;
+    }
+
+    if (existingId || existingEmail) {
+        const duplicateField = existingId ? 'ID' : 'Email';
+        const duplicateValue = existingId ? payload.id : payload.email;
+        alert(`Duplicate blocked: ${duplicateField} ${duplicateValue} is already stored. Use a unique ${role === 'student' ? 'student ID' : 'teacher email'}.`);
+        return;
+    }
+
+    const { error } = await window.supabase.from('users').insert([payload]);
     if (error) {
         alert('Unable to save user: ' + error.message);
         return;
@@ -256,6 +302,10 @@ function refreshDutyDropdowns() {
     }
 }
 
+function handleAdminLogout() {
+    window.location.href = 'index.html';
+}
+
 function renderUsers() {
     const body = document.getElementById('profilesTableBody');
     if (!body) return;
@@ -267,6 +317,34 @@ function renderUsers() {
             <td>${u.dept || '-'}</td>
         </tr>
     `).join('');
+}
+
+function renderStudentRegistry() {
+    const body = document.getElementById('studentsTableBody');
+    if (!body) return;
+    body.innerHTML = users
+        .filter(u => u.role === 'student')
+        .map(u => `
+            <tr>
+                <td>${u.name}</td>
+                <td>${u.id}</td>
+                <td>${u.role ? u.role.toUpperCase() : ''}</td>
+            </tr>
+        `).join('');
+}
+
+function renderTeacherRegistry() {
+    const body = document.getElementById('teachersTableBody');
+    if (!body) return;
+    body.innerHTML = users
+        .filter(u => u.role === 'teacher')
+        .map(u => `
+            <tr>
+                <td>${u.name}</td>
+                <td>${u.email || '-'}</td>
+                <td>${u.role ? u.role.toUpperCase() : ''}</td>
+            </tr>
+        `).join('');
 }
 
 function renderHalls() {
