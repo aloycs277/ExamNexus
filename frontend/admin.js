@@ -1,6 +1,18 @@
 let users = [];
+let examStudents = [];
+let portalUsers = [];
 let halls = [];
 let duties = [];
+
+function ensureSupabaseClient() {
+    const client = window.supabaseClient || window.supabase;
+    if (!client) {
+        alert('Supabase is not configured yet. Update frontend/supabase-config.js.');
+        return false;
+    }
+    window.supabase = client;
+    return true;
+}
 
 function ensureSupabaseClient() {
     const client = window.supabaseClient || window.supabase;
@@ -38,10 +50,25 @@ async function loadAllData() {
     try {
         const { data: usersData, error: usersError } = await window.supabase
             .from('users')
-            .select('id,name,role,dept,email')
+            .select('id,name,role,dept,email,password')
             .order('name');
         if (usersError) throw usersError;
         users = usersData || [];
+
+        const { data: portalUsersData, error: portalUsersError } = await window.supabase
+            .from('portal_users')
+            .select('id,name,role,dept,email')
+            .order('name');
+        if (portalUsersError) throw portalUsersError;
+        portalUsers = portalUsersData || [];
+
+        const { data: examStudentsData, error: examError } = await window.supabase
+            .from('exam_students')
+            .select('id,name,dept,email')
+            .order('name');
+        if (examError) throw examError;
+        examStudents = examStudentsData || [];
+
         renderUsers();
         renderStudentRegistry();
         renderTeacherRegistry();
@@ -61,6 +88,8 @@ async function loadAllData() {
         if (dutiesError) throw dutiesError;
         duties = dutiesData || [];
         renderDuties();
+
+        await loadExistingSeating();
 
         if (statusDot) statusDot.style.background = '#0d9488';
         if (statusIndicator) statusIndicator.style.background = '#ccfbf1';
@@ -124,54 +153,102 @@ async function saveUser(e) {
         return alert('Please enter both name and identifier before saving.');
     }
 
-    const payload = {
-        name,
-        role,
-        dept,
-        password: 'temp123'
-    };
-
     if (role === 'student') {
-        payload.id = rawIdentifier;
-        payload.email = `${rawIdentifier}@metrouni.edu.bd`;
+        const studentId = rawIdentifier.toLowerCase().replace(/\s+/g, '');
+        if (studentId.includes('@')) {
+            return alert('Student ID should not contain an email symbol. Enter only the student ID.');
+        }
+
+        const studentPayload = {
+            id: studentId,
+            name,
+            dept,
+            email: `${studentId}@metrouni.edu.bd`
+        };
+
+        const { data: existingId, error: idError } = await window.supabase
+            .from('exam_students')
+            .select('id')
+            .eq('id', studentPayload.id)
+            .maybeSingle();
+
+        if (idError) {
+            alert('Unable to validate student uniqueness: ' + idError.message);
+            return;
+        }
+
+        const { data: existingEmail, error: emailError } = await window.supabase
+            .from('exam_students')
+            .select('id')
+            .eq('email', studentPayload.email)
+            .maybeSingle();
+
+        if (emailError) {
+            alert('Unable to validate student email uniqueness: ' + emailError.message);
+            return;
+        }
+
+        if (existingId || existingEmail) {
+            const duplicateField = existingId ? 'ID' : 'Email';
+            const duplicateValue = existingId ? studentPayload.id : studentPayload.email;
+            alert(`Duplicate blocked: ${duplicateField} ${duplicateValue} is already stored in exam roster. Use a different student ID.`);
+            return;
+        }
+
+        const { error } = await window.supabase.from('exam_students').insert([studentPayload]);
+        if (error) {
+            alert('Unable to save exam student: ' + error.message);
+            return;
+        }
     } else {
-        payload.id = rawIdentifier.toLowerCase();
-        payload.email = rawIdentifier.toLowerCase();
-    }
+        const teacherEmail = rawIdentifier.toLowerCase().replace(/\s+/g, '');
+        if (!teacherEmail.includes('@')) {
+            return alert('Teacher identifier must be a valid Gmail address. Enter the full email.');
+        }
 
-    const { data: existingId, error: idError } = await window.supabase
-        .from('users')
-        .select('id')
-        .eq('id', payload.id)
-        .maybeSingle();
+        const teacherPayload = {
+            id: teacherEmail,
+            name,
+            dept,
+            email: teacherEmail,
+            password: 'temp123',
+            role: 'teacher'
+        };
 
-    if (idError) {
-        alert('Unable to validate user uniqueness: ' + idError.message);
-        return;
-    }
+        const { data: existingId, error: idError } = await window.supabase
+            .from('users')
+            .select('id')
+            .eq('id', teacherPayload.id)
+            .maybeSingle();
 
-    const { data: existingEmail, error: emailError } = await window.supabase
-        .from('users')
-        .select('id')
-        .eq('email', payload.email)
-        .maybeSingle();
+        if (idError) {
+            alert('Unable to validate teacher uniqueness: ' + idError.message);
+            return;
+        }
 
-    if (emailError) {
-        alert('Unable to validate email uniqueness: ' + emailError.message);
-        return;
-    }
+        const { data: existingEmail, error: emailError } = await window.supabase
+            .from('users')
+            .select('id')
+            .eq('email', teacherPayload.email)
+            .maybeSingle();
 
-    if (existingId || existingEmail) {
-        const duplicateField = existingId ? 'ID' : 'Email';
-        const duplicateValue = existingId ? payload.id : payload.email;
-        alert(`Duplicate blocked: ${duplicateField} ${duplicateValue} is already stored. Use a unique ${role === 'student' ? 'student ID' : 'teacher email'}.`);
-        return;
-    }
+        if (emailError) {
+            alert('Unable to validate teacher email uniqueness: ' + emailError.message);
+            return;
+        }
 
-    const { error } = await window.supabase.from('users').insert([payload]);
-    if (error) {
-        alert('Unable to save user: ' + error.message);
-        return;
+        if (existingId || existingEmail) {
+            const duplicateField = existingId ? 'ID' : 'Email';
+            const duplicateValue = existingId ? teacherPayload.id : teacherPayload.email;
+            alert(`Duplicate blocked: ${duplicateField} ${duplicateValue} is already stored. Use a unique teacher email.`);
+            return;
+        }
+
+        const { error } = await window.supabase.from('users').insert([teacherPayload]);
+        if (error) {
+            alert('Unable to save user: ' + error.message);
+            return;
+        }
     }
 
     closeUserModal();
@@ -193,27 +270,44 @@ async function processBulkCSV() {
         const col = line.split(',');
         if (col.length >= 3) {
             parsedStudents.push({
-                id: col[0].trim(),
+                id: col[0].trim().toLowerCase(),
                 name: col[1].trim(),
                 dept: col[2].trim().toUpperCase(),
-                email: `${col[0].trim()}@metrouni.edu.bd`,
+                email: `${col[0].trim().toLowerCase()}@metrouni.edu.bd`,
                 password: 'temp123',
                 role: 'student'
             });
         }
     });
 
-    if (parsedStudents.length > 0) {
-        const { error } = await window.supabase.from('users').upsert(parsedStudents, { onConflict: 'id' });
+    if (parsedStudents.length === 0) {
+        return alert('Invalid CSV structure format. Expected: ID, Name, Department on each line.');
+    }
+
+    try {
+        const rosterStudents = parsedStudents.map(s => ({
+            id: s.id,
+            name: s.name,
+            dept: s.dept,
+            email: `${s.id}@metrouni.edu.bd`
+        }));
+
+        const { data, error } = await window.supabase
+            .from('exam_students')
+            .upsert(rosterStudents, { onConflict: ['id'] });
+
         if (error) {
-            alert('Unable to import users: ' + error.message);
-            return;
+            console.error('Bulk import error:', error, data);
+            return alert('Unable to import students: ' + error.message);
         }
+
+        alert(`Imported ${Array.isArray(data) ? data.length : rosterStudents.length} student records successfully.`);
         closeBulkModal();
         document.getElementById('csvPasteArea').value = '';
         loadAllData();
-    } else {
-        alert('Invalid CSV structure format. Expected: ID, Name, Department');
+    } catch (err) {
+        console.error('Bulk import exception:', err);
+        alert('Bulk import failed: ' + (err.message || err));
     }
 }
 
@@ -221,11 +315,34 @@ async function saveHall(e) {
     e.preventDefault();
     if (!ensureSupabaseClient()) return;
 
+    const roomNumber = document.getElementById('hRoom').value.trim();
+    const capacity = Number(document.getElementById('hCap').value);
+
+    if (!roomNumber) {
+        return alert('Please enter a room name before saving.');
+    }
+
+    const { data: existingHall, error: checkError } = await window.supabase
+        .from('halls')
+        .select('room_number')
+        .eq('room_number', roomNumber)
+        .maybeSingle();
+
+    if (checkError) {
+        alert('Unable to verify room uniqueness: ' + checkError.message);
+        return;
+    }
+
+    if (existingHall) {
+        alert('This room name already exists. Please choose a different room name.');
+        return;
+    }
+
     const payload = {
-        room_number: document.getElementById('hRoom').value.trim(),
-        capacity: Number(document.getElementById('hCap').value)
+        room_number: roomNumber,
+        capacity: capacity
     };
-    const { error } = await window.supabase.from('halls').upsert([payload], { onConflict: 'room_number' });
+    const { error } = await window.supabase.from('halls').insert([payload]);
     if (error) {
         alert('Unable to save hall: ' + error.message);
         return;
@@ -240,10 +357,35 @@ async function saveDuty(e) {
     e.preventDefault();
     if (!ensureSupabaseClient()) return;
 
+    const teacherId = document.getElementById('dutyTeacher').value;
+    const roomNumber = document.getElementById('dutyHall').value;
+    const dutyDate = document.getElementById('dutyDate').value;
+
+    if (!teacherId || !roomNumber || !dutyDate) {
+        return alert('Please select a teacher, hall, and date before assigning duty.');
+    }
+
+    const { data: existingAssignment, error: existingError } = await window.supabase
+        .from('duties')
+        .select('id')
+        .eq('teacher_id', teacherId)
+        .eq('duty_date', dutyDate)
+        .maybeSingle();
+
+    if (existingError) {
+        alert('Unable to verify duty assignment: ' + existingError.message);
+        return;
+    }
+
+    if (existingAssignment) {
+        alert('This teacher is already assigned on the selected date. Choose another date or teacher.');
+        return;
+    }
+
     const payload = {
-        teacher_id: document.getElementById('dutyTeacher').value,
-        room_number: document.getElementById('dutyHall').value,
-        duty_date: document.getElementById('dutyDate').value,
+        teacher_id: teacherId,
+        room_number: roomNumber,
+        duty_date: dutyDate,
         status: 'Assigned'
     };
     const { error } = await window.supabase.from('duties').insert([payload]);
@@ -267,28 +409,58 @@ async function wipeTable(tableName, message) {
     loadAllData();
 }
 
-function wipeAllStudents() {
-    if (confirm('Are you absolutely sure you want to clear all students?')) {
-        wipeTable('users', 'All students removed.');
+async function wipeAllStudents() {
+    if (!ensureSupabaseClient()) return;
+    if (!confirm('Are you absolutely sure you want to clear all exam roster entries?')) return;
+
+    const { error } = await window.supabase.from('exam_students').delete().neq('id', '');
+    if (error) {
+        alert('Cleanup failed: ' + error.message);
+        return;
     }
+    alert('All exam roster entries removed.');
+    loadAllData();
 }
 
-function wipeAllTeachers() {
-    if (confirm('Are you absolutely sure you want to clear all teachers?')) {
-        wipeTable('users', 'All teachers removed.');
+async function wipeAllTeachers() {
+    if (!ensureSupabaseClient()) return;
+    if (!confirm('Are you absolutely sure you want to clear all teachers?')) return;
+
+    const { error } = await window.supabase.from('users').delete().eq('role', 'teacher');
+    if (error) {
+        alert('Cleanup failed: ' + error.message);
+        return;
     }
+    alert('All teachers removed.');
+    loadAllData();
 }
 
-function wipeAllHalls() {
-    if (confirm('Are you absolutely sure you want to clear all halls?')) {
-        wipeTable('halls', 'All halls removed.');
+async function wipeAllHalls() {
+    if (!ensureSupabaseClient()) return;
+    if (!confirm('Are you absolutely sure you want to clear all halls?')) return;
+
+    const { error } = await window.supabase.from('halls').delete().neq('room_number', '');
+    if (error) {
+        alert('Cleanup failed: ' + error.message);
+        return;
     }
+
+    alert('All halls removed.');
+    loadAllData();
 }
 
-function wipeAllInvigilators() {
-    if (confirm('Are you absolutely sure you want to clear all duty records?')) {
-        wipeTable('duties', 'All duty records removed.');
+async function wipeAllInvigilators() {
+    if (!ensureSupabaseClient()) return;
+    if (!confirm('Are you absolutely sure you want to clear all duty records?')) return;
+
+    const { error } = await window.supabase.from('duties').delete().not('id', 'is', null);
+    if (error) {
+        alert('Cleanup failed: ' + error.message);
+        return;
     }
+
+    alert('All duty records removed.');
+    loadAllData();
 }
 
 function refreshDutyDropdowns() {
@@ -306,23 +478,131 @@ function handleAdminLogout() {
     window.location.href = 'index.html';
 }
 
+async function loadExistingSeating() {
+    if (!ensureSupabaseClient()) return;
+
+    const resultContainer = document.getElementById('seatingResult');
+    if (!resultContainer) return;
+
+    try {
+        const { data, error } = await window.supabase
+            .from('student_seating')
+            .select('student_id,course_code,exam_date,exam_time,room_number,seat_vector,status')
+            .order('room_number,seat_vector');
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+            resultContainer.classList.add('hidden');
+            resultContainer.innerHTML = '';
+            return;
+        }
+
+        const studentDeptMap = examStudents.reduce((map, student) => {
+            map[student.id] = student.dept;
+            return map;
+        }, {});
+
+        const assignmentsByRoom = data.reduce((acc, item) => {
+            const room = item.room_number;
+            const match = item.seat_vector.match(/^(Desk \d+) \((Left|Right)\)$/i);
+            if (!match) return acc;
+
+            const desk = match[1];
+            const side = match[2].toLowerCase();
+            acc[room] = acc[room] || {};
+            acc[room][desk] = acc[room][desk] || { room_number: room, desk, left: null, right: null };
+            acc[room][desk][side] = item;
+            return acc;
+        }, {});
+
+        const formatSeatId = item => {
+            if (!item) return '-';
+            const dept = studentDeptMap[item.student_id] ? `(${studentDeptMap[item.student_id]})` : '';
+            return `${item.student_id}${dept}`;
+        };
+
+        let html = '';
+        Object.keys(assignmentsByRoom).forEach(room => {
+            const desks = Object.values(assignmentsByRoom[room]).sort((a, b) => {
+                const aNum = Number(a.desk.replace(/\D/g, ''));
+                const bNum = Number(b.desk.replace(/\D/g, ''));
+                return aNum - bNum;
+            });
+
+            desks.forEach(deskEntry => {
+                html += `
+                    <tr>
+                        <td><strong>${deskEntry.desk}</strong></td>
+                        <td>${formatSeatId(deskEntry.left)}</td>
+                        <td>${formatSeatId(deskEntry.right)}</td>
+                        <td>Room ${room}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        resultContainer.classList.remove('hidden');
+        resultContainer.innerHTML = `
+            <div style="margin-bottom: 12px; color: #0f766e; font-weight: 600;">Loaded ${data.length} saved seat assignments.</div>
+            <table class="admin-table" style="margin-top:10px; width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f3f4f6; text-align:left;">
+                        <th style="padding:10px;">Desk</th>
+                        <th style="padding:10px;">Left Seat</th>
+                        <th style="padding:10px;">Right Seat</th>
+                        <th style="padding:10px;">Room</th>
+                    </tr>
+                </thead>
+                <tbody>${html}</tbody>
+            </table>
+        `;
+    } catch (err) {
+        console.error('Loading existing seating failed:', err);
+        resultContainer.classList.add('hidden');
+        resultContainer.innerHTML = '';
+    }
+}
+
 function renderUsers() {
     const body = document.getElementById('profilesTableBody');
     if (!body) return;
-    body.innerHTML = users.map(u => `
-        <tr>
-            <td>${u.id}</td>
-            <td>${u.name}</td>
-            <td>${u.role ? u.role.toUpperCase() : ''}</td>
-            <td>${u.dept || '-'}</td>
-        </tr>
-    `).join('');
+
+    const rows = [
+        ...examStudents.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: 'student',
+            dept: u.dept
+        })),
+        ...users.filter(u => u.role === 'teacher').map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: 'teacher',
+            dept: u.dept
+        }))
+    ];
+
+    body.innerHTML = rows
+        .map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${u.name}</td>
+                <td>${u.email || '-'}</td>
+                <td>${u.role ? u.role.toUpperCase() : ''}</td>
+                <td>${u.dept || '-'}</td>
+                <td>
+                    <button class="btn-danger btn-table-action" onclick="triggerDeleteUser('${u.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
 }
 
 function renderStudentRegistry() {
     const body = document.getElementById('studentsTableBody');
     if (!body) return;
-    body.innerHTML = users
+    body.innerHTML = portalUsers
         .filter(u => u.role === 'student')
         .map(u => `
             <tr>
@@ -336,7 +616,7 @@ function renderStudentRegistry() {
 function renderTeacherRegistry() {
     const body = document.getElementById('teachersTableBody');
     if (!body) return;
-    body.innerHTML = users
+    body.innerHTML = portalUsers
         .filter(u => u.role === 'teacher')
         .map(u => `
             <tr>
@@ -354,6 +634,7 @@ function renderHalls() {
         <div class="hall-card">
             <h4>Room ${h.room_number}</h4>
             <p>Capacity: ${h.capacity} Seats</p>
+            <button class="btn-danger btn-card-action" onclick="triggerDeleteHall('${h.room_number}')">Delete</button>
         </div>
     `).join('');
 }
@@ -369,6 +650,9 @@ function renderDuties() {
                 <td>Room ${d.room_number}</td>
                 <td>${d.duty_date || 'N/A'}</td>
                 <td><span class="status-assigned-tag">${d.status || 'Assigned'}</span></td>
+                <td>
+                    <button class="btn-danger btn-table-action" onclick="triggerDeleteDuty('${d.id}')">Delete</button>
+                </td>
             </tr>
         `;
     }).join('');
@@ -376,10 +660,31 @@ function renderDuties() {
 
 async function triggerDeleteUser(id) {
     if (!ensureSupabaseClient()) return;
-    if (confirm(`Permanently delete user with ID: ${id}?`)) {
-        const { error } = await window.supabase.from('users').delete().eq('id', id);
-        if (!error) loadAllData();
+    if (!confirm(`Permanently delete user with ID: ${id}?`)) return;
+
+    const { data: examData, error: examError } = await window.supabase
+        .from('exam_students')
+        .delete()
+        .eq('id', id)
+        .select('id');
+
+    if (examError) {
+        alert('Unable to delete exam roster entry: ' + examError.message);
+        return;
     }
+
+    if (examData && examData.length > 0) {
+        loadAllData();
+        return;
+    }
+
+    const { error: userError } = await window.supabase.from('users').delete().eq('id', id);
+    if (userError) {
+        alert('Unable to delete user: ' + userError.message);
+        return;
+    }
+
+    loadAllData();
 }
 
 async function triggerDeleteHall(room) {
@@ -413,9 +718,9 @@ async function updateHall(e) {
 async function runAllocationEngine() {
     if (!ensureSupabaseClient()) return;
 
-    const students = users.filter(u => u.role === 'student' && u.dept);
+    const students = examStudents.filter(s => s.dept);
     if (students.length === 0 || halls.length === 0) {
-        return alert('Requires loaded students with departments and configured halls.');
+        return alert('Requires loaded exam roster students with departments and configured halls.');
     }
 
     const pLeft = students.filter(s => s.dept === 'CSE');

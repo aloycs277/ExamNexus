@@ -108,60 +108,68 @@ async function handleAuthSubmit(event, actionType) {
     let payload = {};
 
     if (actionType === 'register-student') {
-        const id = document.getElementById('reg-student-id').value.trim();
+        const rawId = document.getElementById('reg-student-id').value.trim().toLowerCase().replace(/\s+/g, '');
+        if (!rawId || rawId.includes('@')) {
+            return alert('Please enter a valid student ID without email formatting.');
+        }
         payload = {
-            id,
+            id: rawId,
             name: document.getElementById('reg-student-name').value.trim(),
-            email: `${id}@metrouni.edu.bd`,
+            email: `${rawId}@metrouni.edu.bd`,
             password: document.getElementById('reg-student-pass').value,
             role: 'student',
             dept: 'CSE'
         };
     } else if (actionType === 'register-teacher') {
-        const email = document.getElementById('reg-teacher-email').value.trim();
+        const rawEmail = document.getElementById('reg-teacher-email').value.trim().toLowerCase().replace(/\s+/g, '');
+        if (!rawEmail || !rawEmail.includes('@')) {
+            return alert('Please enter a valid teacher email address.');
+        }
         payload = {
-            id: email.split('@')[0],
+            id: rawEmail,
             name: document.getElementById('reg-teacher-name').value.trim(),
-            email,
+            email: rawEmail,
             password: document.getElementById('reg-teacher-pass').value,
             role: 'teacher',
             dept: 'CSE'
         };
     } else if (actionType === 'login-student') {
         payload = {
-            uid_email: document.getElementById('login-student-id').value.trim(),
+            uid_email: document.getElementById('login-student-id').value.trim().toLowerCase().replace(/\s+/g, ''),
             password: document.getElementById('login-student-pass').value
         };
     } else if (actionType === 'login-teacher') {
         payload = {
-            uid_email: document.getElementById('login-teacher-email').value.trim(),
+            uid_email: document.getElementById('login-teacher-email').value.trim().toLowerCase(),
             password: document.getElementById('login-teacher-pass').value
         };
     }
 
+    let user = null;
+
     try {
         if (actionType.startsWith('register')) {
-            const { data: existingById, error: existingIdError } = await window.supabase
-                .from('users')
+            const { data: existingById, error: idError } = await window.supabase
+                .from('portal_users')
                 .select('id')
                 .eq('id', payload.id)
                 .maybeSingle();
 
-            if (existingIdError) {
-                console.error('Supabase duplicate check error:', existingIdError);
-                alert(`Registration failed: ${existingIdError.message}`);
+            if (idError) {
+                console.error('Supabase duplicate check error:', idError);
+                alert(`Registration failed: ${idError.message}`);
                 return;
             }
 
-            const { data: existingByEmail, error: existingEmailError } = await window.supabase
-                .from('users')
+            const { data: existingByEmail, error: emailError } = await window.supabase
+                .from('portal_users')
                 .select('id')
                 .eq('email', payload.email)
                 .maybeSingle();
 
-            if (existingEmailError) {
-                console.error('Supabase email duplicate check error:', existingEmailError);
-                alert(`Registration failed: ${existingEmailError.message}`);
+            if (emailError) {
+                console.error('Supabase duplicate check error:', emailError);
+                alert(`Registration failed: ${emailError.message}`);
                 return;
             }
 
@@ -173,55 +181,42 @@ async function handleAuthSubmit(event, actionType) {
                 return;
             }
 
-            const result = await window.supabase
-                .from('users')
+            const { data: insertedUser, error: insertError } = await window.supabase
+                .from('portal_users')
                 .insert([payload])
-                .select('id,name,role')
-                .single();
+                .select('id,name,role,dept')
+                .maybeSingle();
 
-            if (result.error) {
-                console.error('Supabase insert error:', result.error);
-                alert(`Registration failed: ${result.error.message}`);
+            if (insertError) {
+                console.error('Supabase registration error:', insertError);
+                alert(`Registration failed: ${insertError.message}`);
                 return;
             }
 
             closeAllModals();
-            alert(`Account created successfully for ${result.data.name}. You can now log in.`);
+            alert(`Registration successful. Please log in using your ${actionType === 'register-student' ? 'student ID' : 'teacher email'} and password.`);
             return;
-        }
+        } else if (actionType === 'login-student' || actionType === 'login-teacher') {
+            const query = window.supabase
+                .from('portal_users')
+                .select('id,name,role,dept');
 
-        const credential = payload.uid_email;
-        const password = payload.password;
+            if (actionType === 'login-student') {
+                query.eq('id', payload.uid_email);
+            } else {
+                query.ilike('email', payload.uid_email);
+            }
 
-        const { data: byId, error: byIdError } = await window.supabase
-            .from('users')
-            .select('id,name,role,dept')
-            .eq('id', credential)
-            .eq('password', password)
-            .maybeSingle();
+            query.eq('password', payload.password);
+            const { data: foundUser, error: loginError } = await query.maybeSingle();
 
-        if (byIdError) {
-            console.error('Supabase login lookup error:', byIdError);
-            alert(`Login lookup failed: ${byIdError.message}`);
-            return;
-        }
-
-        let user = byId;
-
-        if (!user) {
-            const { data: byEmail, error: byEmailError } = await window.supabase
-                .from('users')
-                .select('id,name,role,dept')
-                .eq('email', credential)
-                .eq('password', password)
-                .maybeSingle();
-
-            if (byEmailError) {
-                console.error('Supabase email login lookup error:', byEmailError);
-                alert(`Login lookup failed: ${byEmailError.message}`);
+            if (loginError) {
+                console.error('Supabase login lookup error:', loginError);
+                alert(`Login lookup failed: ${loginError.message}`);
                 return;
             }
-            user = byEmail;
+
+            user = foundUser;
         }
 
         if (!user) {

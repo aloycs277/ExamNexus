@@ -60,13 +60,26 @@ body {
 .hall-card h4 { margin: 0 0 8px 0; color: var(--accent); }
 
 .algorithm-info-card, .duty-form-card { background: var(--white); padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); }
-.duty-flex-form { display: flex; gap: 20px; align-items: flex-end; }
-.duty-flex-input { flex: 1; margin: 0; }
+.duty-flex-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(220px, 1fr) minmax(150px, auto);
+    gap: 20px;
+    align-items: center;
+}
+.duty-flex-input { margin: 0; }
+.duty-submit-btn {
+    height: 40px;
+    min-width: 150px;
+    width: 100%;
+    align-self: center;
+}
 
 .btn-add, .btn-generate { background: var(--accent); color: var(--white); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
 .btn-add:hover, .btn-generate:hover { background: var(--accent-hover); }
 .btn-danger { background: #fee2e2; color: #ef4444; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
 .btn-danger:hover { background: #fca5a5; }
+.btn-table-action, .btn-card-action { padding: 8px 14px; font-size: 0.85rem; }
+.btn-card-action { width: 100%; margin-top: 12px; }
 
 .btn-logout {
     width: 100%;
