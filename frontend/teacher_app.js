@@ -46,9 +46,11 @@ async function filterTeacherSchedule() {
         if (usersError) throw usersError;
 
         const teacherMap = new Map((usersData || []).map(user => [user.id, user.name]));
+        const searchTokens = searchValue.split(/\s+/).filter(Boolean);
         const filteredRecords = (dutiesData || []).filter(row => {
             const teacherName = teacherMap.get(row.teacher_id) || '';
-            return teacherName.toLowerCase().includes(searchValue);
+            const teacherWords = teacherName.toLowerCase().split(/\s+/).filter(Boolean);
+            return searchTokens.every(token => teacherWords.some(word => word === token));
         });
 
         if (filteredRecords.length > 0) {

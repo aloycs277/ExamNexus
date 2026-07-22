@@ -270,3 +270,42 @@ window.addEventListener('click', (e) => {
         closeAllModals();
     }
 });
+
+// Load student count from database
+document.addEventListener('DOMContentLoaded', function() {
+    // Add small delay to ensure Supabase is loaded from supabase-config.js
+    setTimeout(loadStudentCount, 500);
+});
+
+async function loadStudentCount() {
+    if (!ensureSupabaseClient()) {
+        console.warn('Could not load student count - Supabase not available');
+        return;
+    }
+
+    try {
+        // Query all students from exam_students table (used in User Management)
+        const { data, error } = await window.supabase
+            .from('exam_students')
+            .select('*');
+
+        if (error) {
+            console.error('❌ Error querying exam_students:', error);
+            throw error;
+        }
+
+        const studentCount = data ? data.length : 0;
+        const countElement = document.getElementById('studentCount');
+        
+        if (countElement) {
+            countElement.innerText = studentCount.toLocaleString();
+            console.log(`✅ Successfully loaded student count from exam_students: ${studentCount}`);
+        }
+    } catch (err) {
+        console.error('❌ Error loading student count:', err);
+        const countElement = document.getElementById('studentCount');
+        if (countElement) {
+            countElement.innerText = '0';  // Show 0 if error occurs
+        }
+    }
+}

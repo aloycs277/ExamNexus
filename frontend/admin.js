@@ -90,6 +90,7 @@ async function loadAllData() {
         renderDuties();
 
         await loadExistingSeating();
+        await loadExistingTraditionalSeating();
 
         if (statusDot) statusDot.style.background = '#0d9488';
         if (statusIndicator) statusIndicator.style.background = '#ccfbf1';
@@ -556,6 +557,13 @@ async function loadExistingSeating() {
                 <tbody>${html}</tbody>
             </table>
         `;
+
+        // Show status indicator
+        const statusDiv = document.getElementById('seatingStatus');
+        if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `✅ Active Plan: ${data.length} seat assignments are currently active.`;
+        }
     } catch (err) {
         console.error('Loading existing seating failed:', err);
         resultContainer.classList.add('hidden');
@@ -812,9 +820,313 @@ async function runAllocationEngine() {
 
         if (insertError) throw insertError;
 
+        // Show status indicator
+        const statusDiv = document.getElementById('seatingStatus');
+        if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `✅ Active Plan: ${generatedAssignments.length} seat assignments are currently active.`;
+        }
+
         alert(`Seating plan saved to Supabase for ${generatedAssignments.length} students.`);
     } catch (err) {
         console.error('Seating persistence error:', err);
         alert(`Seating layout was generated, but saving to Supabase failed: ${err.message || err}`);
+    }
+}
+
+// TRADITIONAL SEATING FUNCTIONS
+async function loadExistingTraditionalSeating() {
+    if (!ensureSupabaseClient()) return;
+
+    const resultContainer = document.getElementById('traditionalSeatingResult');
+    if (!resultContainer) return;
+
+    try {
+        const { data, error } = await window.supabase
+            .from('student_seating_traditional')
+            .select('student_id,course_code,exam_date,exam_time,room_number,seat_vector,status')
+            .order('room_number,seat_vector');
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+            resultContainer.classList.add('hidden');
+            resultContainer.innerHTML = '';
+            return;
+        }
+
+        const studentDeptMap = examStudents.reduce((map, student) => {
+            map[student.id] = student.dept;
+            return map;
+        }, {});
+
+        const assignmentsByRoom = data.reduce((acc, item) => {
+            const room = item.room_number;
+            const match = item.seat_vector.match(/^(Desk \d+) \((Left|Right)\)$/i);
+            if (!match) return acc;
+
+            const desk = match[1];
+            const side = match[2].toLowerCase();
+            acc[room] = acc[room] || {};
+            acc[room][desk] = acc[room][desk] || { room_number: room, desk, left: null, right: null };
+            acc[room][desk][side] = item;
+            return acc;
+        }, {});
+
+        const formatSeatId = item => {
+            if (!item) return '-';
+            const dept = studentDeptMap[item.student_id] ? `(${studentDeptMap[item.student_id]})` : '';
+            return `${item.student_id}${dept}`;
+        };
+
+        let html = '';
+        Object.keys(assignmentsByRoom).forEach(room => {
+            const desks = Object.values(assignmentsByRoom[room]).sort((a, b) => {
+                const aNum = Number(a.desk.replace(/\D/g, ''));
+                const bNum = Number(b.desk.replace(/\D/g, ''));
+                return aNum - bNum;
+            });
+
+            desks.forEach(deskEntry => {
+                html += `
+                    <tr>
+                        <td><strong>${deskEntry.desk}</strong></td>
+                        <td>${formatSeatId(deskEntry.left)}</td>
+                        <td>${formatSeatId(deskEntry.right)}</td>
+                        <td>Room ${room}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        resultContainer.classList.remove('hidden');
+        resultContainer.innerHTML = `
+            <div style="margin-bottom: 12px; color: #0f766e; font-weight: 600;">Loaded ${data.length} saved seat assignments.</div>
+            <table class="admin-table" style="margin-top:10px; width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f3f4f6; text-align:left;">
+                        <th style="padding:10px;">Desk</th>
+                        <th style="padding:10px;">Left Seat</th>
+                        <th style="padding:10px;">Right Seat</th>
+                        <th style="padding:10px;">Room</th>
+                    </tr>
+                </thead>
+                <tbody>${html}</tbody>
+            </table>
+        `;
+
+        // Show status indicator
+        const statusDiv = document.getElementById('traditionalSeatingStatus');
+        if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `✅ Active Plan: ${data.length} seat assignments are currently active.`;
+        }
+    } catch (err) {
+        console.error('Loading existing traditional seating failed:', err);
+        resultContainer.classList.add('hidden');
+        resultContainer.innerHTML = '';
+    }
+}
+
+async function runTraditionalAllocationEngine() {
+    if (!ensureSupabaseClient()) return;
+
+    const students = examStudents.filter(s => s.dept);
+    if (students.length === 0 || halls.length === 0) {
+        return alert('Requires loaded exam roster students with departments and configured halls.');
+    }
+
+    // Sort all students by ID sequentially
+    const sortedAllStudents = students.slice().sort((a, b) => {
+        const numA = parseInt(a.id.replace(/\D/g, '')) || 0;
+        const numB = parseInt(b.id.replace(/\D/g, '')) || 0;
+        return numA - numB;
+    });
+
+    // Separate into department groups while maintaining ID order
+    const cseStudents = sortedAllStudents.filter(s => s.dept === 'CSE');
+    const otherStudents = sortedAllStudents.filter(s => s.dept !== 'CSE');
+
+    let html = '';
+    let cseIdx = 0;
+    let otherIdx = 0;
+    let bench = 1;
+    const generatedAssignments = [];
+    const examDate = new Date().toISOString().slice(0, 10);
+    const examTime = '10:00 AM - 1:00 PM';
+
+    for (let h = 0; h < halls.length; h++) {
+        const roomBenches = Math.floor(parseInt(halls[h].capacity) / 2);
+        for (let b = 0; b < roomBenches; b++) {
+            if (cseIdx >= cseStudents.length && otherIdx >= otherStudents.length) break;
+
+            // Alternate: CSE on Left, Other on Right
+            let sL = cseIdx < cseStudents.length ? cseStudents[cseIdx++] : null;
+            let sR = otherIdx < otherStudents.length ? otherStudents[otherIdx++] : null;
+            
+            // If we run out of one department but have another, use the other
+            if (!sL && sR) {
+                sL = sR;
+                sR = null;
+                otherIdx--;
+            } else if (sL && !sR) {
+                // Left has CSE, if other dept runs out, try to get another CSE for right
+                if (cseIdx < cseStudents.length) {
+                    sR = cseStudents[cseIdx++];
+                }
+            }
+
+            const seatLabel = `Desk ${bench}`;
+
+            if (sL) {
+                generatedAssignments.push({
+                    student_id: sL.id,
+                    course_code: 'AUTO-GENERATED',
+                    exam_date: examDate,
+                    exam_time: examTime,
+                    room_number: halls[h].room_number,
+                    seat_vector: `${seatLabel} (Left)`,
+                    status: 'Assigned'
+                });
+            }
+
+            if (sR) {
+                generatedAssignments.push({
+                    student_id: sR.id,
+                    course_code: 'AUTO-GENERATED',
+                    exam_date: examDate,
+                    exam_time: examTime,
+                    room_number: halls[h].room_number,
+                    seat_vector: `${seatLabel} (Right)`,
+                    status: 'Assigned'
+                });
+            }
+
+            html += `
+                <tr>
+                    <td><strong>${seatLabel}</strong></td>
+                    <td>${sL ? `${sL.name} (${sL.dept})` : '-'}</td>
+                    <td>${sR ? `${sR.name} (${sR.dept})` : '-'}</td>
+                    <td>Room ${halls[h].room_number}</td>
+                </tr>
+            `;
+            bench++;
+        }
+    }
+
+    const resultContainer = document.getElementById('traditionalSeatingResult');
+    if (resultContainer) {
+        resultContainer.classList.remove('hidden');
+        resultContainer.innerHTML = `
+            <div style="margin-bottom: 12px; color: #0f766e; font-weight: 600;">Generated ${generatedAssignments.length} seat assignments (Sequential ID Order).</div>
+            <table class="admin-table" style="margin-top:10px; width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f3f4f6; text-align:left;">
+                        <th style="padding:10px;">Desk</th>
+                        <th style="padding:10px;">Left Seat</th>
+                        <th style="padding:10px;">Right Seat</th>
+                        <th style="padding:10px;">Room</th>
+                    </tr>
+                </thead>
+                <tbody>${html}</tbody>
+            </table>
+        `;
+    }
+
+    try {
+        const { error } = await window.supabase
+            .from('student_seating_traditional')
+            .delete()
+            .neq('id', 0);
+
+        if (error) throw error;
+
+        const { error: insertError } = await window.supabase
+            .from('student_seating_traditional')
+            .insert(generatedAssignments);
+
+        if (insertError) throw insertError;
+
+        // Show status indicator
+        const statusDiv = document.getElementById('traditionalSeatingStatus');
+        if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `✅ Active Plan: ${generatedAssignments.length} seat assignments are currently active.`;
+        }
+
+        alert(`Traditional seating plan saved to Supabase for ${generatedAssignments.length} students.`);
+    } catch (err) {
+        console.error('Traditional seating persistence error:', err);
+        alert(`Seating layout was generated, but saving to Supabase failed: ${err.message || err}`);
+    }
+}
+
+// CLEAR SEATING FUNCTIONS
+async function clearAntiCheatSeating() {
+    if (!ensureSupabaseClient()) return;
+
+    const confirmDelete = confirm('⚠️ Are you sure you want to clear the Anti-Cheating seating plan? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    try {
+        const { error } = await window.supabase
+            .from('student_seating')
+            .delete()
+            .neq('id', 0);
+
+        if (error) throw error;
+
+        // Clear display
+        const resultContainer = document.getElementById('seatingResult');
+        const statusDiv = document.getElementById('seatingStatus');
+        
+        if (resultContainer) {
+            resultContainer.classList.add('hidden');
+            resultContainer.innerHTML = '';
+        }
+        
+        if (statusDiv) {
+            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '';
+        }
+
+        alert('✅ Anti-Cheating seating plan has been cleared successfully!');
+    } catch (err) {
+        console.error('Error clearing seating:', err);
+        alert(`❌ Failed to clear seating plan: ${err.message || err}`);
+    }
+}
+
+async function clearTraditionalSeating() {
+    if (!ensureSupabaseClient()) return;
+
+    const confirmDelete = confirm('⚠️ Are you sure you want to clear the Traditional seating plan? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    try {
+        const { error } = await window.supabase
+            .from('student_seating_traditional')
+            .delete()
+            .neq('id', 0);
+
+        if (error) throw error;
+
+        // Clear display
+        const resultContainer = document.getElementById('traditionalSeatingResult');
+        const statusDiv = document.getElementById('traditionalSeatingStatus');
+        
+        if (resultContainer) {
+            resultContainer.classList.add('hidden');
+            resultContainer.innerHTML = '';
+        }
+        
+        if (statusDiv) {
+            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '';
+        }
+
+        alert('✅ Traditional seating plan has been cleared successfully!');
+    } catch (err) {
+        console.error('Error clearing traditional seating:', err);
+        alert(`❌ Failed to clear traditional seating plan: ${err.message || err}`);
     }
 }
