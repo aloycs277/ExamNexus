@@ -42,6 +42,9 @@
 
         <main class="admin-main">
             <header class="admin-topbar">
+                <button class="mobile-sidebar-toggle" onclick="toggleAdminSidebar()" aria-label="Open navigation menu">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h2 id="currentTabTitle">User Management</h2>
                 <div class="system-status" id="dbStatusIndicator">
                     <span class="dot" id="dbStatusDot"></span>
@@ -192,6 +195,7 @@
             </div>
         </main>
     </div>
+    <div class="admin-overlay hidden" onclick="closeMobileAdminSidebar()"></div>
 
     <!-- MODALS STAY UNCHANGED -->
     <div id="userModal" class="modal-overlay hidden">

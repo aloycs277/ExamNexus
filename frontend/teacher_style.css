@@ -48,7 +48,7 @@ body.sidebar-open { overflow: hidden; }
   justify-content: space-between;
   padding: 30px 20px;
   flex-shrink: 0;
-  z-index: 20;
+  z-index: 1001;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -367,8 +367,9 @@ tr:hover td {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
     overflow-y: auto;
     padding-bottom: 1.5rem;
+    z-index: 1001;
   }
-  .sidebar.sidebar-open { transform: translateX(0); }
+  .sidebar.sidebar-open { transform: translateX(0) !important; }
   .mobile-menu-toggle { display: inline-flex; }
   .top-bar { padding: 16px 20px; flex-wrap: wrap; }
   .portal-title h2 { font-size: 18px; }

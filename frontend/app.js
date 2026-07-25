@@ -10,6 +10,7 @@ const MASTER_ADMIN_PASS = "admin1234";
 
 function openLoginModal(role) {
     closeAllModals();
+    closeMobileSidebar();
     if (loginModal) {
         loginModal.classList.remove('hidden');
         switchLoginTab(role);
@@ -18,6 +19,7 @@ function openLoginModal(role) {
 
 function openRegisterModal(role) {
     closeAllModals();
+    closeMobileSidebar();
     if (registerModal) {
         registerModal.classList.remove('hidden');
         switchRegisterTab(role);
@@ -26,6 +28,7 @@ function openRegisterModal(role) {
 
 function openAdminModal() {
     closeAllModals();
+    closeMobileSidebar();
     if (adminModal) {
         adminModal.classList.remove('hidden');
     }
@@ -43,6 +46,7 @@ function toggleMobileSidebar() {
     if (!sidebar || window.innerWidth > 900) return;
     const shouldOpen = !sidebar.classList.contains('sidebar-open');
     sidebar.classList.toggle('sidebar-open', shouldOpen);
+    sidebar.style.transform = shouldOpen ? 'translateX(0)' : 'translateX(-100%)';
     sidebarOverlay?.classList.toggle('show', shouldOpen);
     document.body.classList.toggle('sidebar-open', shouldOpen);
 }
@@ -50,6 +54,7 @@ function toggleMobileSidebar() {
 function closeMobileSidebar() {
     if (!sidebar) return;
     sidebar.classList.remove('sidebar-open');
+    sidebar.style.transform = window.innerWidth <= 900 ? 'translateX(-100%)' : '';
     sidebarOverlay?.classList.remove('show');
     document.body.classList.remove('sidebar-open');
 }
@@ -296,6 +301,7 @@ window.addEventListener('click', (e) => {
 window.addEventListener('resize', () => {
     if (window.innerWidth > 900) {
         closeMobileSidebar();
+        if (sidebar) sidebar.style.removeProperty('transform');
     }
 });
 

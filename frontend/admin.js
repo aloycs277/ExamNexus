@@ -133,6 +133,24 @@ function closeBulkModal() { document.getElementById('bulkModal').classList.add('
 function openHallModal() { document.getElementById('hallModal').classList.remove('hidden'); }
 function closeHallModal() { document.getElementById('hallModal').classList.add('hidden'); }
 
+const adminSidebar = document.querySelector('.admin-sidebar');
+const adminOverlay = document.querySelector('.admin-overlay');
+
+function toggleAdminSidebar() {
+    if (!adminSidebar || window.innerWidth > 900) return;
+    const open = !adminSidebar.classList.contains('sidebar-open');
+    adminSidebar.classList.toggle('sidebar-open', open);
+    adminOverlay?.classList.toggle('hidden', !open);
+    document.body.classList.toggle('sidebar-open', open);
+}
+
+function closeMobileAdminSidebar() {
+    if (!adminSidebar) return;
+    adminSidebar.classList.remove('sidebar-open');
+    adminOverlay?.classList.add('hidden');
+    document.body.classList.remove('sidebar-open');
+}
+
 function updatePlaceholder() {
     const roleElem = document.getElementById('uRole');
     const labelElem = document.getElementById('idLabel');

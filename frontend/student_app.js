@@ -17,6 +17,7 @@ function toggleMobileSidebar() {
     if (!sidebar || window.innerWidth > 900) return;
     const shouldOpen = !sidebar.classList.contains('sidebar-open');
     sidebar.classList.toggle('sidebar-open', shouldOpen);
+    sidebar.style.transform = shouldOpen ? 'translateX(0)' : 'translateX(-100%)';
     sidebarOverlay?.classList.toggle('show', shouldOpen);
     document.body.classList.toggle('sidebar-open', shouldOpen);
 }
@@ -24,6 +25,7 @@ function toggleMobileSidebar() {
 function closeMobileSidebar() {
     if (!sidebar) return;
     sidebar.classList.remove('sidebar-open');
+    sidebar.style.transform = window.innerWidth <= 900 ? 'translateX(-100%)' : '';
     sidebarOverlay?.classList.remove('show');
     document.body.classList.remove('sidebar-open');
 }
@@ -42,6 +44,7 @@ window.addEventListener('click', (e) => {
 window.addEventListener('resize', () => {
     if (window.innerWidth > 900) {
         closeMobileSidebar();
+        if (sidebar) sidebar.style.removeProperty('transform');
     }
 });
 /////////////////////\\\\\\\\\\\\\\\\\\\
