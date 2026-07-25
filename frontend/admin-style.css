@@ -149,6 +149,11 @@ body {
         transition: transform 0.25s ease;
         z-index: 1050;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding-bottom: 2rem;
+        padding-top: 1rem;
     }
 
     .admin-sidebar.sidebar-open {
