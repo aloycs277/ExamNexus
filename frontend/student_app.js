@@ -1,3 +1,6 @@
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
 function ensureSupabaseClient() {
     const client = window.supabaseClient || window.supabase;
     if (!client) {
@@ -8,10 +11,40 @@ function ensureSupabaseClient() {
     return true;
 }
 
+///////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+function toggleMobileSidebar() {
+    if (!sidebar || window.innerWidth > 900) return;
+    const shouldOpen = !sidebar.classList.contains('sidebar-open');
+    sidebar.classList.toggle('sidebar-open', shouldOpen);
+    sidebarOverlay?.classList.toggle('show', shouldOpen);
+    document.body.classList.toggle('sidebar-open', shouldOpen);
+}
+
+function closeMobileSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('sidebar-open');
+    sidebarOverlay?.classList.remove('show');
+    document.body.classList.remove('sidebar-open');
+}
+/////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\
 document.addEventListener('DOMContentLoaded', function () {
     loadStudentDashboardData();
 });
+///////////////////////////\\\\\\\\\
 
+window.addEventListener('click', (e) => {
+    if (e.target === sidebarOverlay) {
+        closeMobileSidebar();
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) {
+        closeMobileSidebar();
+    }
+});
+/////////////////////\\\\\\\\\\\\\\\\\\\
 function loadStudentDashboardData() {
     const studentNameElement = document.getElementById('display-student-name');
     const studentIdElement = document.getElementById('display-student-id');

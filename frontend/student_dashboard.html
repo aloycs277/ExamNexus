@@ -10,6 +10,8 @@
 <body>
   <div class="portal-wrapper">
     
+    <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+    
     <!-- Sidebar Left Navigation Column -->
     <aside class="sidebar">
       <div class="profile-summary">
@@ -31,6 +33,11 @@
     <!-- Main Dynamic Interface Workspace Frame -->
     <main class="main-content">
       <header class="top-bar">
+        
+        <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" aria-label="Open navigation menu">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+        
         <div class="portal-title">
           <h2>Student Examination Dashboard</h2>
         </div>

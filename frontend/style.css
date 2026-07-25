@@ -13,19 +13,37 @@ body, html {
     margin: 0; padding: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-base); color: var(--text-primary);
-    overflow: hidden;
-  
+    overflow-x: hidden;
 }
 
+body.sidebar-open { overflow: hidden; }
+
 /* Structural Interface Splitter Layout */
-.portal-wrapper { display: flex; height: 100vh; width: 100vw; }
+.portal-wrapper { display: flex; min-height: 100vh; width: 100vw; }
 
 .sidebar {
-    
     width: 250px; background-color: #14194b ;
     border-right: 1px dotted var(--panel-border);
     display: flex; flex-direction: column; padding: 2rem 1.5rem; justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
 }
+
+.sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(2, 6, 23, 0.58); z-index: 900;
+    opacity: 0; visibility: hidden; transition: all 0.25s ease;
+}
+
+.sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+.mobile-menu-toggle {
+    display: none; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px; background: rgba(255,255,255,0.08); color: white; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+.mobile-menu-toggle:hover { background: rgba(255,255,255,0.14); }
 
 /* All layout and image handling combined into this single class */
 .uni-logo-box {
@@ -58,10 +76,11 @@ body, html {
 .btn-admin-gate:hover { border-color: var(--accent-blue); color: white; }
 
 /* Upper Workspace Structural Layer */
-.main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-base); }
+.main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-base); min-width: 0; }
 .top-bar {
-    height: 70px; padding: 0 2.5rem; border-bottom: 1px solid var(--panel-border);
+    min-height: 70px; padding: 0 2.5rem; border-bottom: 1px solid var(--panel-border);
     display: flex; align-items: center; justify-content: space-between; background: #14194b ;
+    gap: 1rem;
 }
 .stats-badge {
     background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2);
@@ -123,6 +142,22 @@ body, html {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@media (max-width: 900px) {
+    .portal-wrapper { display: block; width: 100%; }
+    .sidebar {
+        position: fixed; top: 0; left: 0; height: 100vh; width: min(82vw, 310px);
+        transform: translateX(-100%); transition: transform 0.25s ease; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .sidebar.sidebar-open { transform: translateX(0); }
+    .mobile-menu-toggle { display: inline-flex; }
+    .top-bar { padding: 1rem 1rem 1.1rem; flex-wrap: wrap; }
+    .stats-badge { width: 100%; justify-content: center; }
+    .auth-action-group { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+    .content-body { padding: 1.25rem; }
+    .hero-banner { padding: 1.5rem; }
+    .modal-card { width: min(92vw, 450px); padding: 1.25rem; }
 }
 
 /* --- Extracted Inline Styles from HTML --- */

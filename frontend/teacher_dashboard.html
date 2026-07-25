@@ -9,6 +9,7 @@
 </head>
 <body>
   <div class="portal-wrapper">
+    <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
     
     <!-- Left Sidebar Navigation -->
     <aside class="sidebar">
@@ -31,6 +32,9 @@
     <!-- Main Workspace Frame -->
     <main class="main-content">
       <header class="top-bar">
+        <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" aria-label="Open navigation menu">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
         <div class="portal-title">
           <h2>Teacher Invigilation Dashboard</h2>
         </div>

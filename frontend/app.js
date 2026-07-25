@@ -1,7 +1,10 @@
 const loginModal = document.getElementById('loginModal');
 const registerModal = document.getElementById('registerModal');
 const adminModal = document.getElementById('adminModal');
-
+////////////////////////////////////////////////
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.querySelector('.sidebar-overlay');
+/////////////////////////////////////////////////
 const MASTER_ADMIN_GMAIL = "admin@metrouni.edu.bd";
 const MASTER_ADMIN_PASS = "admin1234";
 
@@ -34,7 +37,23 @@ function closeAllModals() {
     if (adminModal) adminModal.classList.add('hidden');
     document.querySelectorAll('form').forEach(form => form.reset());
 }
+///////////////////////////////////////
 
+function toggleMobileSidebar() {
+    if (!sidebar || window.innerWidth > 900) return;
+    const shouldOpen = !sidebar.classList.contains('sidebar-open');
+    sidebar.classList.toggle('sidebar-open', shouldOpen);
+    sidebarOverlay?.classList.toggle('show', shouldOpen);
+    document.body.classList.toggle('sidebar-open', shouldOpen);
+}
+
+function closeMobileSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('sidebar-open');
+    sidebarOverlay?.classList.remove('show');
+    document.body.classList.remove('sidebar-open');
+}
+//////////////////////////////////////
 function switchLoginTab(role) {
     const studentForm = document.getElementById('form-login-student');
     const teacherForm = document.getElementById('form-login-teacher');
@@ -268,6 +287,15 @@ function showAdminDashboardSection() {
 window.addEventListener('click', (e) => {
     if (e.target === loginModal || e.target === registerModal || e.target === adminModal) {
         closeAllModals();
+    }
+    if (e.target === sidebarOverlay) {
+        closeMobileSidebar();
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) {
+        closeMobileSidebar();
     }
 });
 

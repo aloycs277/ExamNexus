@@ -11,6 +11,8 @@
 
 <body>
   <div class="portal-wrapper">
+    
+    <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
 
     <aside class="sidebar">
       <div class="uni-logo-box">
@@ -40,7 +42,11 @@
 
     <main class="main-content">
       
-      <header class="top-bar">
+      <header class="top-bar">        <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" aria-label="Open navigation menu">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+
+       
         <div class="stats-badge">
           <span class="pulse-indicator"></span>
           <strong>Total Students:</strong> <span id="studentCount">Loading...</span>
@@ -179,9 +185,6 @@
 
     </main>
   </div>
-  <button id="logoutBtn" class="admin-nav-btn">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</button>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="app.js"></script>
