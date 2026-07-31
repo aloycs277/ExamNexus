@@ -56,7 +56,7 @@
             <div id="profiles" class="tab-content">
                 <div class="content-header">
                     <h3>System Records</h3>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn-add" style="background:#475569;" onclick="openBulkModal()">Bulk CSV
                             Import</button>
                         <button class="btn-add" onclick="openUserModal()">+ Add Profile</button>
@@ -64,19 +64,21 @@
                         <button class="btn-danger" onclick="wipeAllTeachers()">Clear Teachers</button>
                     </div>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Dept</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="profilesTableBody"></tbody>
-                </table>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Dept</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profilesTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- STUDENTS REGISTRY TAB -->
@@ -84,16 +86,18 @@
                 <div class="content-header">
                     <h3>Registered Students</h3>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>ID</th>
-                            <th>Role</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentsTableBody"></tbody>
-                </table>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>ID</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- TEACHERS REGISTRY TAB -->
@@ -101,16 +105,18 @@
                 <div class="content-header">
                     <h3>Registered Teachers</h3>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Gmail</th>
-                            <th>Role</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teachersTableBody"></tbody>
-                </table>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Gmail</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- HALL CONFIGURATION TAB -->
@@ -180,18 +186,20 @@
                         <button type="submit" class="btn-add duty-submit-btn">Assign Duty</button>
                     </form>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Teacher</th>
-                            <th>Room</th>
-                            <th>Exam Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dutyTableBody"></tbody>
-                </table>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Room</th>
+                                <th>Exam Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dutyTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
