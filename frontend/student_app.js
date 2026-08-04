@@ -124,7 +124,7 @@ async function filterSeatingDisplay() {
                         ${antiCheatItem ? `
                             <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #dc2626; font-weight: 600;">Anti-Cheating Plan</div>
                             <div style="font-size: 26px; font-weight: 700; margin-top: 6px; color: #0f172a;">Room ${antiCheatItem.room_number}</div>
-                            <div style="margin-top: 10px; font-size: 13px; color: #334155;">Course: ${antiCheatItem.course_code}</div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #334155;"> ${antiCheatItem.course_code}</div>
                             <div style="font-size: 13px; color: #334155;">Date: ${antiCheatItem.exam_date} • ${antiCheatItem.exam_time}</div>
                             <div style="font-size: 13px; color: #334155;">Seat: <strong>${antiCheatItem.seat_vector}</strong></div>
                         ` : `
@@ -135,7 +135,7 @@ async function filterSeatingDisplay() {
                         ${traditionalItem ? `
                             <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #0891b2; font-weight: 600;">Traditional Plan</div>
                             <div style="font-size: 26px; font-weight: 700; margin-top: 6px; color: #0f172a;">Room ${traditionalItem.room_number}</div>
-                            <div style="margin-top: 10px; font-size: 13px; color: #334155;">Course: ${traditionalItem.course_code}</div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #334155;"> ${traditionalItem.course_code}</div>
                             <div style="font-size: 13px; color: #334155;">Date: ${traditionalItem.exam_date} • ${traditionalItem.exam_time}</div>
                             <div style="font-size: 13px; color: #334155;">Seat: <strong>${traditionalItem.seat_vector}</strong></div>
                         ` : `
