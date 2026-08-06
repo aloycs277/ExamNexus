@@ -10,6 +10,11 @@
 </head>
 
 <body>
+    <script>
+        if (sessionStorage.getItem('examshield_admin_logged') !== 'true') {
+            window.location.replace('index.html');
+        }
+    </script>
 
     <div class="admin-wrapper">
         <aside class="admin-sidebar">

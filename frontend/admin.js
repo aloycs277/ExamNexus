@@ -24,7 +24,21 @@ function ensureSupabaseClient() {
     return true;
 }
 
+function enforceAdminAccess() {
+    const isAdminLoggedIn = sessionStorage.getItem('examshield_admin_logged') === 'true';
+
+    if (!isAdminLoggedIn) {
+        alert('Please login first to access the admin portal.');
+        window.location.replace('index.html');
+        return false;
+    }
+
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    if (!enforceAdminAccess()) return;
+
     const userForm = document.getElementById('userForm');
     const hallForm = document.getElementById('hallForm');
     const editHallForm = document.getElementById('editHallForm');
@@ -494,6 +508,11 @@ function refreshDutyDropdowns() {
 }
 
 function handleAdminLogout() {
+    sessionStorage.removeItem('examshield_admin_logged');
+    sessionStorage.removeItem('logged_user_id');
+    sessionStorage.removeItem('logged_user_name');
+    sessionStorage.removeItem('logged_user_role');
+    sessionStorage.removeItem('logged_user_email');
     window.location.href = 'index.html';
 }
 

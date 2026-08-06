@@ -28,7 +28,21 @@ function closeMobileSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
+function enforceTeacherAccess() {
+    const role = sessionStorage.getItem('logged_user_role');
+    const userId = sessionStorage.getItem('logged_user_id');
+
+    if (role !== 'teacher' || !userId) {
+        alert('Please login first to access the teacher portal.');
+        window.location.replace('index.html');
+        return false;
+    }
+
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    if (!enforceTeacherAccess()) return;
     filterTeacherSchedule();
 });
 
@@ -120,5 +134,9 @@ function renderErrorRow(container, message) {
 }
 
 function handleLogout() {
+    sessionStorage.removeItem('logged_user_id');
+    sessionStorage.removeItem('logged_user_name');
+    sessionStorage.removeItem('logged_user_role');
+    sessionStorage.removeItem('logged_user_email');
     window.location.href = 'index.html';
 }

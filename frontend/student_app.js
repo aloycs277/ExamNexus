@@ -29,8 +29,22 @@ function closeMobileSidebar() {
     sidebarOverlay?.classList.remove('show');
     document.body.classList.remove('sidebar-open');
 }
-/////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\
+
+function enforceStudentAccess() {
+    const role = sessionStorage.getItem('logged_user_role');
+    const userId = sessionStorage.getItem('logged_user_id');
+
+    if (role !== 'student' || !userId) {
+        alert('Please login first to access the student portal.');
+        window.location.replace('index.html');
+        return false;
+    }
+
+    return true;
+}
+/////////////////////////\\\\\\\\\\\\
 document.addEventListener('DOMContentLoaded', function () {
+    if (!enforceStudentAccess()) return;
     loadStudentDashboardData();
 });
 ///////////////////////////\\\\\\\\\
@@ -165,5 +179,9 @@ function renderTableError(container, searchId) {
 }
 
 function handleLogout() {
+    sessionStorage.removeItem('logged_user_id');
+    sessionStorage.removeItem('logged_user_name');
+    sessionStorage.removeItem('logged_user_role');
+    sessionStorage.removeItem('logged_user_email');
     window.location.href = 'index.html';
 }
