@@ -42,9 +42,29 @@ function enforceStudentAccess() {
 
     return true;
 }
-/////////////////////////\\\\\\\\\\\\
+
+function getCurrentStudentId() {
+    return (sessionStorage.getItem('logged_user_id') || '').trim();
+}
+
+function getCurrentStudentName() {
+    return (sessionStorage.getItem('logged_user_name') || 'Student Terminal User').trim();
+}
+
+function renderStudentProfile() {
+    const studentNameElement = document.getElementById('display-student-name');
+    const studentIdElement = document.getElementById('display-student-id');
+
+    const loggedName = getCurrentStudentName();
+    const loggedId = getCurrentStudentId() || '000-000-000';
+
+    if (studentNameElement) studentNameElement.innerText = loggedName;
+    if (studentIdElement) studentIdElement.innerText = `ID: ${loggedId}`;
+}
+/////////////////////////\\\\\\
 document.addEventListener('DOMContentLoaded', function () {
     if (!enforceStudentAccess()) return;
+    renderStudentProfile();
     loadStudentDashboardData();
 });
 ///////////////////////////\\\\\\\\\
@@ -63,14 +83,14 @@ window.addEventListener('resize', () => {
 });
 /////////////////////\\\\\\\\\\\\\\\\\\\
 function loadStudentDashboardData() {
-    const studentNameElement = document.getElementById('display-student-name');
-    const studentIdElement = document.getElementById('display-student-id');
+    renderStudentProfile();
 
-    const loggedName = sessionStorage.getItem('logged_user_name') || 'Student Terminal User';
-    const loggedId = sessionStorage.getItem('logged_user_id') || 'Active Session';
-
-    if (studentNameElement) studentNameElement.innerText = loggedName;
-    if (studentIdElement) studentIdElement.innerText = `ID: ${loggedId}`;
+    const searchInput = document.getElementById('seatSearchQuery');
+    if (searchInput) {
+        searchInput.value = getCurrentStudentId() || '';
+        searchInput.setAttribute('readonly', 'readonly');
+        searchInput.setAttribute('title', 'Your account is limited to your own seating record');
+    }
 
     filterSeatingDisplay();
 }
@@ -83,7 +103,7 @@ async function filterSeatingDisplay() {
 
     if (!tableBody) return;
 
-    const studentId = searchInput ? searchInput.value.trim() : '';
+    const studentId = getCurrentStudentId();
 
     if (!studentId) {
         tableBody.innerHTML = `

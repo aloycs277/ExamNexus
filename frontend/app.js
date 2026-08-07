@@ -254,6 +254,7 @@ async function handleAuthSubmit(event, actionType) {
         sessionStorage.setItem('logged_user_id', user.id);
         sessionStorage.setItem('logged_user_name', user.name);
         sessionStorage.setItem('logged_user_role', user.role);
+        sessionStorage.setItem('logged_user_email', user.email || '');
 
         if (user.role === 'teacher') {
             window.location.replace('teacher_dashboard.html');

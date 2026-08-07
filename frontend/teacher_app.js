@@ -41,8 +41,24 @@ function enforceTeacherAccess() {
     return true;
 }
 
+function getCurrentTeacherId() {
+    return (sessionStorage.getItem('logged_user_id') || '').trim();
+}
+
+function getCurrentTeacherName() {
+    return (sessionStorage.getItem('logged_user_name') || '').trim();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     if (!enforceTeacherAccess()) return;
+
+    const searchInput = document.getElementById('teacherSearchQuery');
+    if (searchInput) {
+        searchInput.value = getCurrentTeacherName();
+        searchInput.setAttribute('readonly', 'readonly');
+        searchInput.setAttribute('title', 'Your account is limited to your own invigilation record');
+    }
+
     filterTeacherSchedule();
 });
 
@@ -67,9 +83,10 @@ async function filterTeacherSchedule() {
 
     if (!tableBody) return;
 
-    const searchValue = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const loggedTeacherId = getCurrentTeacherId();
+    const loggedTeacherName = getCurrentTeacherName();
 
-    if (!searchValue) {
+    if (!loggedTeacherId) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="3" style="text-align: center; padding: 30px; color: #64748b; font-style: italic;">
@@ -83,27 +100,24 @@ async function filterTeacherSchedule() {
         const { data: dutiesData, error: dutiesError } = await window.supabase
             .from('duties')
             .select('id,teacher_id,room_number,duty_date,status')
+            .eq('teacher_id', loggedTeacherId)
             .order('duty_date');
         if (dutiesError) throw dutiesError;
 
-        const { data: usersData, error: usersError } = await window.supabase
+        const { data: teacherData, error: teacherError } = await window.supabase
             .from('users')
             .select('id,name')
-            .eq('role', 'teacher');
-        if (usersError) throw usersError;
+            .eq('id', loggedTeacherId)
+            .maybeSingle();
+        if (teacherError) throw teacherError;
 
-        const teacherMap = new Map((usersData || []).map(user => [user.id, user.name]));
-        const searchTokens = searchValue.split(/\s+/).filter(Boolean);
-        const filteredRecords = (dutiesData || []).filter(row => {
-            const teacherName = teacherMap.get(row.teacher_id) || '';
-            const teacherWords = teacherName.toLowerCase().split(/\s+/).filter(Boolean);
-            return searchTokens.every(token => teacherWords.some(word => word === token));
-        });
+        const teacherName = teacherData?.name || loggedTeacherName || 'Your Record';
+        const filteredRecords = dutiesData || [];
 
         if (filteredRecords.length > 0) {
             tableBody.innerHTML = filteredRecords.map(row => `
                 <tr>
-                    <td style="font-weight: 600; color: #0f172a;">${teacherMap.get(row.teacher_id) || 'Unassigned'}</td>
+                    <td style="font-weight: 600; color: #0f172a;">${teacherName}</td>
                     <td style="color: #2563eb; font-weight: 600;"><i class="fa-solid fa-door-open"></i> Room ${row.room_number || 'N/A'}</td>
                     <td style="color: #334155;">${row.duty_date || 'Regular Schedule Slot'}</td>
                 </tr>
@@ -113,7 +127,7 @@ async function filterTeacherSchedule() {
                 <tr>
                     <td colspan="3" style="text-align: center; padding: 25px; background-color: #f8fafc; color: #64748b;">
                         <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i>
-                        No assigned duties found matching "<strong>${searchInput.value}</strong>"
+                        No assigned duties found for your account yet.
                     </td>
                 </tr>`;
         }
