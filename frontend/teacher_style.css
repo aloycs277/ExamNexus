@@ -21,12 +21,18 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+html {
+  height: 100%;
+  overflow-y: auto;
+}
+
 body {
   background-color: var(--bg-body);
   color: var(--text-main);
-  min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body.sidebar-open { overflow: hidden; }
@@ -34,8 +40,8 @@ body.sidebar-open { overflow: hidden; }
 .portal-wrapper {
   display: flex;
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
 }
 
 /* ==========================================================================
@@ -53,7 +59,8 @@ body.sidebar-open { overflow: hidden; }
   flex-shrink: 0;
   z-index: 1001;
   overflow: hidden;
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
 }
 
 .sidebar-overlay {
@@ -163,8 +170,8 @@ body.sidebar-open { overflow: hidden; }
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
+  min-height: 100%;
+  overflow: visible;
 }
 
 .top-bar {
